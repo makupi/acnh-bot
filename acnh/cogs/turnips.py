@@ -7,6 +7,7 @@ from acnh.database.models import Turnip
 from acnh.utils import create_embed
 
 REPLACE_EMOJI = "♻️"
+BELL_EMOJI = "🔔"
 
 
 def set_footer(embed, ctx):
@@ -19,6 +20,19 @@ def parse_selling(is_selling):
     return "Buying"
 
 
+def add_listings(embed, listings):
+    if len(listings) == 0:
+        embed.description = (
+            "*Currently no active listings for this category. Please try again later!*"
+        )
+    for listing in listings:
+        embed.add_field(
+            name=f"{listing.price} {BELL_EMOJI}",
+            value=f"Invite Code: {listing.invite_key} - Active since: {datetime.now() - listing.open_time}",
+            inline=False,
+        )
+
+
 class Turnips(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -27,24 +41,39 @@ class Turnips(commands.Cog):
     async def on_ready(self):
         print(f"{type(self).__name__} Cog ready.")
 
-    @commands.group(invoke_without_command=False, pass_context=True)
+    @commands.group(invoke_without_command=True, pass_context=True)
     async def turnip(self, ctx):
-        pass
+        await self.info(ctx)
 
-    @turnip.group(invoke_without_command=False, pass_context=True)
+    @turnip.group(invoke_without_command=True, pass_context=True)
     async def list(self, ctx):
-        pass
-
-    @turnip.command()
-    async def info(self, ctx):
-        pass
+        await self.selling(ctx)
+        await self.buying(ctx)
 
     @list.command()
     async def selling(self, ctx):
-        pass
+        listings = (
+            await Turnip.query.where(Turnip.is_selling)
+            .order_by(Turnip.price.desc())
+            .gino.all()
+        )
+        embed = await create_embed(title="*Listings for Buying*")
+        add_listings(embed, listings)
+        await ctx.send(embed=embed)
 
     @list.command()
     async def buying(self, ctx):
+        listings = (
+            await Turnip.query.where(Turnip.is_selling is False)
+            .order_by(Turnip.price.asc())
+            .gino.all()
+        )
+        embed = await create_embed(title="*Listings for Selling*")
+        add_listings(embed, listings)
+        await ctx.send(embed=embed)
+
+    @turnip.command()
+    async def info(self, ctx):
         pass
 
     @turnip.command()
@@ -57,7 +86,14 @@ class Turnips(commands.Cog):
 
     @turnip.command()
     async def stop(self, ctx):
-        await ctx.send(f"stop")
+        listing = await Turnip.get(ctx.author.id)
+        if listing is not None:
+            await listing.delete()
+        embed = await create_embed(
+            description="Listing deleted. Thank you for participating. <3"
+        )
+        set_footer(embed, ctx)
+        await ctx.send(embed=embed)
 
     async def new_listing(self, ctx, price, code, is_selling):
         listing = await Turnip.get(ctx.author.id)
@@ -77,7 +113,7 @@ class Turnips(commands.Cog):
         )
         embed.add_field(
             name="New Listing",
-            value=f"{parse_selling(is_selling)} Turnips for {price} 🔔",
+            value=f"{parse_selling(is_selling)} Turnips for {price} {BELL_EMOJI}",
         )
         set_footer(embed, ctx)
         await ctx.send(embed=embed)
@@ -88,11 +124,13 @@ class Turnips(commands.Cog):
         )
         embed.add_field(
             name="Old",
-            value=f"{parse_selling(listing.is_selling)} for {listing.price} 🔔. Active since {datetime.now() - listing.open_time}",
+            value=f"{parse_selling(listing.is_selling)} for {listing.price} {BELL_EMOJI}. Active since {datetime.now() - listing.open_time}",
             inline=False,
         )
         embed.add_field(
-            name="New", value=f"{parse_selling(is_selling)} for {price} 🔔", inline=False
+            name="New",
+            value=f"{parse_selling(is_selling)} for {price} {BELL_EMOJI}",
+            inline=False,
         )
         set_footer(embed, ctx)
         msg = await ctx.send(f"{ctx.author.mention}", embed=embed)

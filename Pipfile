@@ -9,6 +9,7 @@ verify_ssl = true
 discord-py = "*"
 gino = "*"
 alembic = "*"
+psycopg2 = "*"
 
 [requires]
 python_version = "3.8"

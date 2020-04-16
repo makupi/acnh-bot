@@ -9,10 +9,10 @@ from acnh.utils import config, create_embed
 
 
 def fix_cog_path(cog):
-    if not cog.startswith('maki.cogs.'):
+    if not cog.startswith('acnh.cogs.'):
         if not cog.startswith('cogs.'):
-            return 'maki.cogs.'+cog
-        return 'maki.'+cog
+            return 'acnh.cogs.'+cog
+        return 'acnh.'+cog
     return cog
 
 

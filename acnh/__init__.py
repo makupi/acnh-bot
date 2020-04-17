@@ -5,7 +5,7 @@ from discord.ext import commands
 
 import acnh.database
 from acnh.database.models import Guild
-from acnh.utils import config
+from acnh.utils import config, get_guild_prefix
 
 __version__ = "0.0.1"
 
@@ -15,9 +15,7 @@ invite_link = "https://discordapp.com/api/oauth2/authorize?client_id={}&scope=bo
 async def get_prefix(_bot, message):
     prefix = config.prefix
     if not isinstance(message.channel, discord.DMChannel):
-        guild_data = _bot.guild_data.get(message.guild.id, None)
-        if guild_data is not None:
-            prefix = guild_data.get("prefix", prefix)
+        prefix = get_guild_prefix(_bot, message.guild.id)
     return commands.when_mentioned_or(prefix)(_bot, message)
 
 
@@ -28,19 +26,19 @@ async def preload_guild_data():
     guilds = await Guild.query.gino.all()
     d = dict()
     for guild in guilds:
-        d[guild.id] = {
-            "prefix": guild.prefix
-        }
+        d[guild.id] = {"prefix": guild.prefix}
     return d
 
 
 @bot.event
 async def on_ready():
     await database.setup()
-    print(f'''Logged in as {bot.user}..
+    print(
+        f"""Logged in as {bot.user}..
         Serving {len(bot.users)} users in {len(bot.guilds)} guilds
         Invite: {invite_link.format(bot.user.id)}
-    ''')
+    """
+    )
     bot.guild_data = await preload_guild_data()
 
 
@@ -55,7 +53,7 @@ def load_extensions(_bot):
         try:
             _bot.load_extension(ext)
         except Exception as ex:
-            print(f'Failed to load extension {ext} - exception: {ex}')
+            print(f"Failed to load extension {ext} - exception: {ex}")
 
 
 def run():

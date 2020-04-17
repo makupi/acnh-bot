@@ -4,7 +4,7 @@ import discord
 from discord.ext import commands
 
 from acnh.database.models import Turnip
-from acnh.utils import create_embed
+from acnh.utils import create_embed, get_guild_prefix
 
 REPLACE_EMOJI = "♻️"
 BELL_EMOJI = "🔔"
@@ -74,7 +74,29 @@ class Turnips(commands.Cog):
 
     @turnip.command()
     async def info(self, ctx):
-        pass
+        prefix = get_guild_prefix(self.bot, ctx.guild.id)
+        embed = await create_embed(
+            description=f"""Use the commands below to start trading Turnips! Don't forget to stop your listing once you're done. 
+**Commands**
+```
+- {prefix}turnip sell/buy <price> <invite-code>
+    - {prefix}turnip sell 600 6c63f04f
+    - {prefix}turnip buy 90 6c63f04f
+- {prefix}turnip list
+    Lists both selling and buying listings
+- {prefix}turnip list selling/buying
+    Lists either selling or buying
+- {prefix}turnip stop
+    Stop your active listing. Please use this once your done!
+```
+**Active listings**
+"""
+        )
+        selling_count = await Turnip.query.where(Turnip.is_selling).gino.all()
+        buying_count = await Turnip.query.where(Turnip.is_selling is False).gino.all()
+        embed.add_field(name="Selling", value=str(len(selling_count)))
+        embed.add_field(name="Buying", value=str(len(buying_count)))
+        await ctx.send(embed=embed)
 
     @turnip.command()
     async def sell(self, ctx, price: int, code: str):

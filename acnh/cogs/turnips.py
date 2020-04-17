@@ -10,6 +10,14 @@ REPLACE_EMOJI = "♻️"
 BELL_EMOJI = "🔔"
 
 
+def parse_timedelta(td):
+    minutes = round(td.seconds / 60)
+    tmp = f"{minutes} minute"
+    if minutes > 1:
+        tmp += "s"
+    return tmp
+
+
 def set_footer(embed, ctx):
     embed.set_footer(text=f"{ctx.author} - <{ctx.author.id}>")
 
@@ -23,12 +31,14 @@ def parse_selling(is_selling):
 def add_listings(embed, listings):
     if len(listings) == 0:
         embed.description = (
-            "*Currently no active listings for this category. Please try again later!*"
+            "*Currently no active listings for this category. Please check back later!*"
         )
     for listing in listings:
         embed.add_field(
             name=f"{listing.price} {BELL_EMOJI}",
-            value=f"Invite Code: {listing.invite_key} - Active since: {datetime.now() - listing.open_time}",
+            value=f"Invite Code: {listing.invite_key} - \
+                    Open since {parse_timedelta((datetime.now() - listing.open_time))}\n "
+            f"User <{listing.user_id}>",
             inline=False,
         )
 
@@ -50,25 +60,25 @@ class Turnips(commands.Cog):
         await self.selling(ctx)
         await self.buying(ctx)
 
-    @list.command()
+    @list.command(aliases=["sell"])
     async def selling(self, ctx):
         listings = (
             await Turnip.query.where(Turnip.is_selling)
             .order_by(Turnip.price.desc())
             .gino.all()
         )
-        embed = await create_embed(title="*Listings for Buying*")
+        embed = await create_embed(title="*Listings for Selling Turnips*")
         add_listings(embed, listings)
         await ctx.send(embed=embed)
 
-    @list.command()
+    @list.command(aliases=["buy"])
     async def buying(self, ctx):
         listings = (
             await Turnip.query.where(Turnip.is_selling is False)
             .order_by(Turnip.price.asc())
             .gino.all()
         )
-        embed = await create_embed(title="*Listings for Selling*")
+        embed = await create_embed(title="*Listings for Buying Turnips*")
         add_listings(embed, listings)
         await ctx.send(embed=embed)
 
@@ -76,7 +86,8 @@ class Turnips(commands.Cog):
     async def info(self, ctx):
         prefix = get_guild_prefix(self.bot, ctx.guild.id)
         embed = await create_embed(
-            description=f"""Use the commands below to start trading Turnips! Don't forget to stop your listing once you're done. 
+            description=f"""Use the commands below to start trading Turnips!
+                            Don't forget to stop your listing once you're done.\n
 **Commands**
 ```
 - {prefix}turnip sell/buy <price> <invite-code>
@@ -88,6 +99,9 @@ class Turnips(commands.Cog):
     Lists either selling or buying
 - {prefix}turnip stop
     Stop your active listing. Please use this once your done!
+- {prefix}report <user id> <message>
+    Report inactive/wrong listings e.g.
+    - {prefix}report 309232625892065282 listing open but gates closed
 ```
 **Active listings**
 """
@@ -120,7 +134,7 @@ class Turnips(commands.Cog):
     async def new_listing(self, ctx, price, code, is_selling):
         listing = await Turnip.get(ctx.author.id)
         if listing is not None:
-            await self.add_replace_logic(ctx, listing, True, price, code)
+            await self.add_replace_logic(ctx, listing, True, price)
             await listing.delete()
         await Turnip.create(
             user_id=ctx.author.id,
@@ -140,13 +154,14 @@ class Turnips(commands.Cog):
         set_footer(embed, ctx)
         await ctx.send(embed=embed)
 
-    async def add_replace_logic(self, ctx, listing, is_selling, price, code):
+    async def add_replace_logic(self, ctx, listing, is_selling, price):
         embed = await create_embed(
             description=f"You already have an active listing. React with {REPLACE_EMOJI} to replace it."
         )
         embed.add_field(
             name="Old",
-            value=f"{parse_selling(listing.is_selling)} for {listing.price} {BELL_EMOJI}. Active since {datetime.now() - listing.open_time}",
+            value=f"{parse_selling(listing.is_selling)} for {listing.price} {BELL_EMOJI}. \
+                    Open since {parse_timedelta(datetime.now() - listing.open_time)}",
             inline=False,
         )
         embed.add_field(

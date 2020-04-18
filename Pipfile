@@ -10,6 +10,7 @@ discord-py = "*"
 gino = "*"
 alembic = "*"
 psycopg2 = "*"
+aiohttp = "*"
 
 [requires]
 python_version = "3.8"

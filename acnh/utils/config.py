@@ -1,11 +1,7 @@
 import json
 import os
 
-default_config = {
-    "prefix": ";",
-    "token": "",
-    "database": "postgresql://localhost/acnh"
-}
+default_config = {"prefix": ";", "token": "", "database": "postgresql://localhost/acnh"}
 
 
 class Config:
@@ -20,12 +16,9 @@ class Config:
         self.prefix = self.config.get("prefix", default_config.get("prefix"))
         self.token = self.config.get("token", default_config.get("token"))
         self.database = self.config.get("database", default_config.get("database"))
+        self.nookipedia_key = self.config.get("nookipediaKey", "")
 
     def store(self):
-        c = {
-            "prefix": self.prefix,
-            "token": self.token,
-            "database": self.database
-        }
+        c = {"prefix": self.prefix, "token": self.token, "database": self.database}
         with open(self.filename, "w") as file:
             json.dump(c, file)

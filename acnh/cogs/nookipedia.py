@@ -9,21 +9,24 @@ from fuzzywuzzy import process
 
 # match to list of villagers with difflib.get_close_matches
 
-VILLAGER_API = "https://nookipedia.com/api/villager/{name}/?api_key={api_key}"
+VILLAGER_API = "https://nookipedia.com/api/villager/{name}/"
 VILLAGER_CATEGORY_LIST = (
     "https://nookipedia.com/w/api.php?action=query&list=categorymembers&&cmlimit=max&cmtitle"
     "=Category:Villagers&format=json"
 )
 
 
-async def fetch_json(url):
+async def fetch_json(url, headers=None):
+    if headers is None:
+        headers = {}
     async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
+        async with session.get(url, headers=headers) as response:
             return await response.json()
 
 
 async def fetch_villager(name, api_key):
-    return await fetch_json(VILLAGER_API.format(name=name, api_key=api_key))
+    header = {"X-API-KEY": api_key}
+    return await fetch_json(VILLAGER_API.format(name=name), headers=header)
 
 
 async def query_villager_list() -> list:
@@ -91,7 +94,6 @@ class Nookipedia(commands.Cog):
             return tmp, None
         # matches = difflib.get_close_matches(name, self.villagers, n=6)
         matches = process.extract(name, self.villagers, limit=6)
-        print(matches)
         embed = await create_embed()
         if len(matches) == 1:
             return matches[0][0], None

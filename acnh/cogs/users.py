@@ -42,6 +42,7 @@ class Users(commands.Cog):
 
     @commands.command()
     async def report(self, ctx, user_id: int, *, message: str = None):
+        """: Report users for invalid turnip listings"""
         user = await get_create_user(user_id)
         user_reports = user.report_count
         author = await get_create_user(ctx.author.id)

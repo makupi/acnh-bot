@@ -53,6 +53,7 @@ class Turnips(commands.Cog):
 
     @commands.group(invoke_without_command=True, pass_context=True)
     async def turnip(self, ctx):
+        """: Use for info about turnip listings!"""
         await self.info(ctx)
 
     @turnip.group(invoke_without_command=True, pass_context=True)

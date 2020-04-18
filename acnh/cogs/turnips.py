@@ -87,7 +87,7 @@ class Turnips(commands.Cog):
     async def info(self, ctx):
         prefix = get_guild_prefix(self.bot, ctx.guild.id)
         embed = await create_embed(
-            description=f"""Use the commands below to start trading Turnips!
+            description=f"""Use the commands below to start trading turnips!
                             Don't forget to stop your listing once you're done.\n
 **Commands**
 ```
@@ -99,7 +99,7 @@ class Turnips(commands.Cog):
 - {prefix}turnip list selling/buying
     Lists either selling or buying
 - {prefix}turnip stop
-    Stop your active listing. Please use this once your done!
+    Stop your active listing. Please use this once you're done!
 - {prefix}report <user id> <message>
     Report inactive/wrong listings e.g.
     - {prefix}report 309232625892065282 listing open but gates closed

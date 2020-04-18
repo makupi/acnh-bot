@@ -1,3 +1,5 @@
+import asyncio
+import random
 from pathlib import Path
 
 import discord
@@ -10,6 +12,14 @@ from acnh.utils import config, get_guild_prefix
 __version__ = "0.0.1"
 
 invite_link = "https://discordapp.com/api/oauth2/authorize?client_id={}&scope=bot&permissions=8192"
+
+presence_strings = [
+    "turnip stonks",
+    "@Daisy help",
+    "@Daisy turnip",
+    "@Daisy villager marshal",
+    "selling turnips",
+]
 
 
 async def get_prefix(_bot, message):
@@ -40,6 +50,15 @@ async def on_ready():
     """
     )
     bot.guild_data = await preload_guild_data()
+    bot.loop.create_task(presence_task())
+
+
+async def presence_task():
+    while True:
+        await bot.change_presence(
+            activity=discord.Game(random.choice(presence_strings))
+        )
+        await asyncio.sleep(60)
 
 
 def extensions():

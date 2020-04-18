@@ -5,6 +5,7 @@ import discord
 from discord.ext import commands
 
 from acnh.utils import config, create_embed
+from fuzzywuzzy import process
 
 # match to list of villagers with difflib.get_close_matches
 
@@ -88,19 +89,21 @@ class Nookipedia(commands.Cog):
         tmp = f"{name.capitalize()} (villager)"
         if tmp in self.villagers:
             return tmp, None
-        matches = difflib.get_close_matches(name, self.villagers, n=6)
+        # matches = difflib.get_close_matches(name, self.villagers, n=6)
+        matches = process.extract(name, self.villagers, limit=6)
         print(matches)
         embed = await create_embed()
         if len(matches) == 1:
-            return matches[0], None
+            return matches[0][0], None
         elif len(matches) == 0:
             embed.description = "No matching villager found!"
             await ctx.send(embed=embed)
             return None, None
         else:
+            embed.description = "Did you mean any of these villagers?"
             choices = {}
             for index, match in enumerate(matches):
-                choices[f"{index}⃣"] = match
+                choices[f"{index}⃣"] = match[0]
             for k, v in choices.items():
                 embed.add_field(name=k, value=v, inline=True)
             embed.set_footer(text="React to choose one villager!")

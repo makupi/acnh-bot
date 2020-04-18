@@ -11,6 +11,7 @@ gino = "*"
 alembic = "*"
 psycopg2 = "*"
 aiohttp = "*"
+fuzzywuzzy = {extras = ["speedup"],version = "*"}
 
 [requires]
 python_version = "3.8"

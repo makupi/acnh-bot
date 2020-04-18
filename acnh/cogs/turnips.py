@@ -132,6 +132,8 @@ class Turnips(commands.Cog):
         await ctx.send(embed=embed)
 
     async def new_listing(self, ctx, price, code, is_selling):
+        if await self.check_user_banned(ctx):
+            return
         listing = await Turnip.get(ctx.author.id)
         if listing is not None:
             await self.add_replace_logic(ctx, listing, True, price)
@@ -182,6 +184,16 @@ class Turnips(commands.Cog):
         await msg.add_reaction(REPLACE_EMOJI)
         await self.bot.wait_for("reaction_add", check=check, timeout=60.0)
         await msg.delete()
+
+    async def check_user_banned(self, ctx):
+        if ctx.author.id in self.bot.turnip_banned_users:
+            embed = await create_embed(
+                description="Sorry, you are currently banned due to repeated offenses. Please message maku#0001 for "
+                "an appeal. "
+            )
+            await ctx.send(embed=embed)
+            return True
+        return False
 
 
 def setup(bot):

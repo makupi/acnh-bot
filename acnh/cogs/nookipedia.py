@@ -56,6 +56,7 @@ class Nookipedia(commands.Cog):
     async def villager(self, ctx, *, name: str):
         """: Look up a villager by name
         Use ;villager marshal to get information about marshal!"""
+        await ctx.trigger_typing()
         name, msg = await self.find_villager(ctx, name)
         if name is None:
             return

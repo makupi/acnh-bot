@@ -9,7 +9,7 @@ import acnh.database
 from acnh.database.models import Guild
 from acnh.utils import config, get_guild_prefix
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 invite_link = "https://discordapp.com/api/oauth2/authorize?client_id={}&scope=bot&permissions=8192"
 

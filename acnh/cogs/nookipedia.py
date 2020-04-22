@@ -4,8 +4,8 @@ import aiohttp
 import discord
 from discord.ext import commands
 
-from acnh.utils import config, create_embed
-from fuzzywuzzy import process
+from acnh.utils import config, create_embed, wait_for_choice
+from fuzzywuzzy import process as fuzzy_search
 
 # match to list of villagers with difflib.get_close_matches
 
@@ -96,7 +96,7 @@ class Nookipedia(commands.Cog):
         if tmp in self.villagers:
             return tmp, None
         # matches = difflib.get_close_matches(name, self.villagers, n=6)
-        matches = process.extract(name, self.villagers, limit=6)
+        matches = fuzzy_search.extract(name, self.villagers, limit=6)
         embed = await create_embed()
         if len(matches) == 1:
             return matches[0][0], None
@@ -106,31 +106,8 @@ class Nookipedia(commands.Cog):
             return None, None
         else:
             embed.description = "Did you mean any of these villagers?"
-            choices = {}
-            for index, match in enumerate(matches):
-                choices[f"{index}⃣"] = match[0]
-            for k, v in choices.items():
-                embed.add_field(name=k, value=v, inline=True)
             embed.set_footer(text="React to choose one villager!")
-            msg = await ctx.send(embed=embed)
-            for emoji in choices.keys():
-                await msg.add_reaction(emoji)
-
-            def check(_reaction, _user):
-                return (
-                    _reaction.message.id == msg.id
-                    and _user.id == ctx.author.id
-                    and _reaction.emoji in choices.keys()
-                )
-
-            reaction, user = await self.bot.wait_for(
-                "reaction_add", check=check, timeout=300.0
-            )
-            try:
-                await msg.clear_reactions()
-            except discord.Forbidden:
-                pass
-            return choices.get(reaction.emoji), msg
+            return await wait_for_choice(ctx, embed, matches)
 
 
 def setup(bot):

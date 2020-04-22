@@ -112,16 +112,19 @@ class Nookipedia(commands.Cog):
         if name is None:
             return
         result = await fetch_villager(name, self.api_key)
-        quote = result.get("quote", "")
-        image = result.get("image", None)
-        gender = result.get("gender", None)
-        personality = result.get("personality", None)
-        species = result.get("species", None)
-        birthday = result.get("birthday", None)
-        phrase = result.get("phrase", None)
-        sign = result.get("sign", None)
-        link = result.get("link", None)
-        embed = await create_embed(title=name, description=f"*{quote}*", url=link)
+        print(result)
+        quote = result.get("quote")
+        image = result.get("image")
+        gender = result.get("gender")
+        personality = result.get("personality")
+        species = result.get("species")
+        birthday = result.get("birthday")
+        phrase = result.get("phrase")
+        sign = result.get("sign")
+        link = result.get("link")
+        embed = await create_embed(title=name, url=link)
+        if quote:
+            embed.description = f"*{quote}*"
         embed.set_thumbnail(url=image)
         embed.set_footer(text="Powered by https://nookipedia.com/")
         if gender:
@@ -150,23 +153,19 @@ class Nookipedia(commands.Cog):
         result = await fetch_critter(name, self.api_key)
         catch_phrase = result.get("caught")
         link = result.get("link")
-        embed = await create_embed(
-            title=name, description=f"*{catch_phrase}*", url=link
-        )
+        embed = await create_embed(title=name, url=link)
+        if catch_phrase:
+            embed.description = f"*{catch_phrase}*"
         embed.set_thumbnail(url=result.get("image"))
         embed.set_footer(
             text="Powered by https://nookipedia.com/ (critter is currently in beta)"
         )
-        time_year = result.get("time-year", None)
-        time_day = result.get("time-day", None)
-        rarity = result.get("rarity", None)
-        price = result.get("price", None)
-        shadow = result.get("shadow", None)
-        location = result.get("location", None)
-        #         embed.description = f"""```json
-        # {json.dumps(result, indent=4)}
-        # ```
-        # """
+        time_year = result.get("time-year")
+        time_day = result.get("time-day")
+        rarity = result.get("rarity")
+        price = result.get("price")
+        shadow = result.get("shadow")
+        location = result.get("location")
         if time_year:
             value = split_string_categories(time_year)
             embed.add_field(name="Season", value=value, inline=False)

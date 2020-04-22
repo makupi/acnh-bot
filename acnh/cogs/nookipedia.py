@@ -37,7 +37,7 @@ async def fetch_critter(name, api_key):
 
 
 async def query_villager_list() -> list:
-    r = await fetch_json(CATEGORY_API.format("Villager"))
+    r = await fetch_json(CATEGORY_API.format("Villagers"))
     member_list = r.get("query").get("categorymembers")
     villagers = []
     for member in member_list:
@@ -72,6 +72,8 @@ def split_string_categories(string):
 
 
 async def search(ctx, name, lookup, category):
+    if name.capitalize() in lookup:
+        return name.capitalize(), None
     if name.title() in lookup:
         return name.title(), None
     matches = fuzzy_search.extract(name, lookup, limit=6)

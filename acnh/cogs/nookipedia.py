@@ -105,23 +105,16 @@ class Nookipedia(commands.Cog):
 
     async def find_villager(self, ctx, name):
         # check exact match
-        if name.capitalize() in self.villagers:
-            return name.capitalize(), None
         tmp = f"{name.capitalize()} (villager)"
         if tmp in self.villagers:
             return tmp, None
-        matches = fuzzy_search.extract(name, self.villagers, limit=6)
-        embed = await create_embed()
-        if len(matches) == 1:
-            return matches[0][0], None
-        elif len(matches) == 0:
-            embed.description = "No matching villager found!"
-            await ctx.send(embed=embed)
-            return None, None
-        else:
-            embed.description = "Did you mean any of these villagers?"
-            embed.set_footer(text="React to choose one villager!")
-            return await wait_for_choice(ctx, embed, matches)
+        return await search(ctx, name, self.villagers, "villager")
+
+    async def find_critter(self, ctx, name):
+        tmp = f"{name.capitalize()} (fish)"
+        if tmp in self.critters:
+            return tmp, None
+        return await search(ctx, name, self.critters, "critter")
 
 
 def setup(bot):

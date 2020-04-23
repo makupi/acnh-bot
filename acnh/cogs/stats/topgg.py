@@ -11,6 +11,8 @@ class TopGG(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.api_key = config.topgg_key
+        if self.api_key is None:
+            raise ValueError
 
     async def post_count(self):
         headers = {"Authorization": self.api_key}

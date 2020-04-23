@@ -1,5 +1,5 @@
 from .config import Config
-from .embeds import create_embed
+from .embeds import create_embed, wait_for_choice
 
 config = Config()
 

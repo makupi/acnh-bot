@@ -42,7 +42,7 @@ async def query_villager_list() -> list:
     villagers = []
     for member in member_list:
         name = member.get("title")
-        if "Category" in name or "islander" in name:
+        if "Category" in name or "islander" in name.lower():
             continue
         villagers.append(name)
     return villagers
@@ -99,9 +99,20 @@ class Nookipedia(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print(f"{type(self).__name__} Cog ready.")
         self.villagers = await query_villager_list()
         self.critters = await query_critter_list()
+        print(f"{type(self).__name__} Cog ready.")
+
+    @commands.command("testall")
+    @commands.is_owner()
+    async def test_all(self, ctx):
+        villager_command = self.bot.get_command("villager")
+        critter_command = self.bot.get_command("critter")
+        for name in self.villagers:
+            await ctx.send(f"testing command with {name}")
+            await villager_command.callback(self, ctx, name=name)
+        for name in self.critters:
+            await critter_command.callback(self, ctx, name=name)
 
     @commands.command()
     async def villager(self, ctx, *, name: str):

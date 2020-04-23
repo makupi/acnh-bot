@@ -19,7 +19,7 @@ class TopGG(commands.Cog):
         payload = {"server_count": len(self.bot.guilds)}
         async with aiohttp.ClientSession() as session:
             await session.post(
-                API_URL.format(bot_id=self.bot.id), data=payload, headers=headers
+                API_URL.format(bot_id=self.bot.user.id), data=payload, headers=headers
             )
 
     @commands.Cog.listener()

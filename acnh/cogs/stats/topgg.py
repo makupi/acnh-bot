@@ -11,13 +11,15 @@ class TopGG(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.api_key = config.topgg_key
+        if self.api_key is None:
+            raise ValueError
 
     async def post_count(self):
         headers = {"Authorization": self.api_key}
         payload = {"server_count": len(self.bot.guilds)}
         async with aiohttp.ClientSession() as session:
             await session.post(
-                API_URL.format(bot_id=self.bot.id), data=payload, headers=headers
+                API_URL.format(bot_id=self.bot.user.id), data=payload, headers=headers
             )
 
     @commands.Cog.listener()

@@ -123,7 +123,6 @@ class Nookipedia(commands.Cog):
         if name is None:
             return
         result = await fetch_villager(name, self.api_key)
-        print(result)
         quote = result.get("quote")
         image = result.get("image")
         gender = result.get("gender")

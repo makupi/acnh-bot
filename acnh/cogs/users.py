@@ -51,7 +51,7 @@ class Users(commands.Cog):
         embed = await create_embed(title="User Report")
         embed = await self.add_author_embed(embed, user_id)
         embed.set_footer(text=f"Reported: <{user_id}> by <{ctx.author.id}>")
-        listing = await Turnip.get(ctx.author.id)
+        listing = await Turnip.get(user_id)
         if listing is None:
             embed.add_field(
                 name="Listings",

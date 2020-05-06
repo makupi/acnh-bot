@@ -12,4 +12,4 @@ alembic = "*"
 psycopg2 = "*"
 aiohttp = "*"
 fuzzywuzzy = {extras = ["speedup"],version = "*"}
-
+async-nookipedia = "*"

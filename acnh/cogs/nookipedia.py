@@ -71,13 +71,15 @@ class Nookipedia(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.api = NookipediaAPI(api_key=config.nookipedia_key, cached_api=True)
-        self.villagers = []
-        self.critters = []
+        self.villagers = list()
+        self.critters = list()
+        self.personality_data = dict()
 
     @commands.Cog.listener()
     async def on_ready(self):
         self.villagers = await self.query_villager_list()
         self.critters = await self.query_critter_list()
+        self.personality_data = await self.query_personalities()
         print(f"{type(self).__name__} Cog ready.")
 
     @commands.command("testall")
@@ -88,8 +90,8 @@ class Nookipedia(commands.Cog):
         for name in self.villagers:
             await ctx.send(f"testing command with {name}")
             await villager_command.callback(self, ctx, name=name)
-        for name in self.critters:
-            await critter_command.callback(self, ctx, name=name)
+        # for name in self.critters:
+        #     await critter_command.callback(self, ctx, name=name)
 
     @commands.command()
     async def villager(self, ctx, *, name: str):
@@ -160,6 +162,39 @@ class Nookipedia(commands.Cog):
         else:
             await msg.edit(embed=embed)
 
+    @commands.command()
+    async def personalities(self, ctx):
+        embed = await create_embed(title="Personalities")
+        desc = ""
+        for k in self.personality_data.keys():
+            desc += f" - {k}\n"
+        embed.description = desc
+        await ctx.send(embed=embed)
+
+    @commands.command()
+    async def personality(self, ctx, name: str):
+        name = name.capitalize()
+        embed = await create_embed()
+        if name not in self.personality_data:
+            embed.description = f"Personality `{name}` not found."
+            await ctx.send(embed=embed)
+            return
+        embed.title = f"{name} villagers"
+        data = self.personality_data.get(name)
+        counter = 0
+        msg = "```"
+        for name in data:
+            msg += f"{name:^10}\t"
+            counter += 1
+            if counter == 4:
+                msg += "\n"
+                counter = 0
+        msg += "```"
+
+        embed.description = msg
+        embed.set_footer(text="Powered by https://nookipedia.com/")
+        await ctx.send(embed=embed)
+
     async def find_villager(self, ctx, name):
         # check exact match
         tmp = f"{name.capitalize()} (villager)"
@@ -184,6 +219,13 @@ class Nookipedia(commands.Cog):
         bugs = await self.api.get_category("New_Horizons_fish")
         fish = await self.api.get_category("New_Horizons_bugs")
         return bugs + fish
+
+    async def query_personalities(self) -> dict:
+        pers = await self.api.get_category("Personalities")
+        personalities = dict()
+        for per in pers:
+            personalities[per] = await self.api.get_category(f"{per}_villagers")
+        return personalities
 
 
 def setup(bot):

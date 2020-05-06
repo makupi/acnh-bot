@@ -7,6 +7,7 @@ from discord.ext import commands
 
 from acnh.utils import config, create_embed, wait_for_choice
 from fuzzywuzzy import process as fuzzy_search
+from nookipedia import Nookipedia as NookipediaAPI
 
 # match to list of villagers with difflib.get_close_matches
 
@@ -34,30 +35,6 @@ async def fetch_villager(name, api_key):
 async def fetch_critter(name, api_key):
     headers = {"X-API-KEY": api_key}
     return await fetch_json(CRITTER_API.format(name=name), headers=headers)
-
-
-async def query_villager_list() -> list:
-    r = await fetch_json(CATEGORY_API.format("Villagers"))
-    member_list = r.get("query").get("categorymembers")
-    villagers = []
-    for member in member_list:
-        name = member.get("title")
-        if "Category" in name or "islander" in name.lower():
-            continue
-        villagers.append(name)
-    return villagers
-
-
-async def query_critter_list() -> list:
-    bugs = await fetch_json(CATEGORY_API.format("New_Horizons_fish"))
-    fish = await fetch_json(CATEGORY_API.format("New_Horizons_bugs"))
-    bug_list = bugs.get("query").get("categorymembers")
-    fish_list = fish.get("query").get("categorymembers")
-    critters = []
-    for m in bug_list + fish_list:
-        name = m.get("title")
-        critters.append(name)
-    return critters
 
 
 def split_string_categories(string):
@@ -93,14 +70,14 @@ async def search(ctx, name, lookup, category):
 class Nookipedia(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.api_key = config.nookipedia_key
+        self.api = NookipediaAPI(api_key=config.nookipedia_key, cached_api=True)
         self.villagers = []
         self.critters = []
 
     @commands.Cog.listener()
     async def on_ready(self):
-        self.villagers = await query_villager_list()
-        self.critters = await query_critter_list()
+        self.villagers = await self.query_villager_list()
+        self.critters = await self.query_critter_list()
         print(f"{type(self).__name__} Cog ready.")
 
     @commands.command("testall")
@@ -122,31 +99,22 @@ class Nookipedia(commands.Cog):
         name, msg = await self.find_villager(ctx, name)
         if name is None:
             return
-        result = await fetch_villager(name, self.api_key)
-        quote = result.get("quote")
-        image = result.get("image")
-        gender = result.get("gender")
-        personality = result.get("personality")
-        species = result.get("species")
-        birthday = result.get("birthday")
-        phrase = result.get("phrase")
-        sign = result.get("sign")
-        link = result.get("link")
-        embed = await create_embed(title=name, url=link)
-        if quote:
-            embed.description = f"*{quote}*"
-        embed.set_thumbnail(url=image)
+        v = await self.api.get_villager(name)
+        embed = await create_embed(title=name, url=v.link)
+        if v.quote:
+            embed.description = f"*{v.quote}*"
+        embed.set_thumbnail(url=v.image)
         embed.set_footer(text="Powered by https://nookipedia.com/")
-        if gender:
-            embed.add_field(name="Gender", value=gender)
-        if species:
-            embed.add_field(name="Species", value=species)
-        if personality:
-            embed.add_field(name="Personality", value=personality)
-        if phrase:
-            embed.add_field(name="Phrase", value=phrase)
-        if birthday:
-            embed.add_field(name="Birthday", value=f"{birthday} ({sign})")
+        if v.gender:
+            embed.add_field(name="Gender", value=v.gender)
+        if v.species:
+            embed.add_field(name="Species", value=v.species)
+        if v.personality:
+            embed.add_field(name="Personality", value=v.personality)
+        if v.phrase:
+            embed.add_field(name="Phrase", value=v.phrase)
+        if v.birthday:
+            embed.add_field(name="Birthday", value=f"{v.birthday} ({v.sign})")
         if msg is None:
             await ctx.send(embed=embed)
         else:
@@ -160,39 +128,31 @@ class Nookipedia(commands.Cog):
         name, msg = await self.find_critter(ctx, name)
         if name is None:
             return
-        result = await fetch_critter(name, self.api_key)
-        catch_phrase = result.get("caught")
-        link = result.get("link")
-        embed = await create_embed(title=name, url=link)
-        if catch_phrase:
-            embed.description = f"*{catch_phrase}*"
-        embed.set_thumbnail(url=result.get("image"))
+        c = await self.api.get_critter(name)
+        embed = await create_embed(title=name, url=c.link)
+        if c.catch_phrase:
+            embed.description = f"*{c.catch_phrase}*"
+        embed.set_thumbnail(url=c.image)
         embed.set_footer(
             text="Powered by https://nookipedia.com/ (critter is currently in beta)"
         )
-        time_year = result.get("time-year")
-        time_day = result.get("time-day")
-        rarity = result.get("rarity")
-        price = result.get("price")
-        shadow = result.get("shadow")
-        location = result.get("location")
-        if time_year:
-            value = split_string_categories(time_year)
+        if c.time_year:
+            value = split_string_categories(c.time_year)
             embed.add_field(name="Season", value=value, inline=False)
-        if time_day:
-            value = split_string_categories(time_day)
+        if c.time_day:
+            value = split_string_categories(c.time_day)
             embed.add_field(name="Daytime", value=value, inline=False)
-        if rarity:
-            value = split_string_categories(rarity)
+        if c.rarity:
+            value = split_string_categories(c.rarity)
             embed.add_field(name="Rarity", value=value, inline=False)
-        if price:
-            value = split_string_categories(price)
+        if c.price:
+            value = split_string_categories(c.price)
             embed.add_field(name="Sell Price", value=value, inline=False)
-        if shadow:
-            value = split_string_categories(shadow)
+        if c.shadow:
+            value = split_string_categories(c.shadow)
             embed.add_field(name="Shadow", value=value, inline=False)
-        if location:
-            value = split_string_categories(location)
+        if c.location:
+            value = split_string_categories(c.location)
             embed.add_field(name="Location", value=value, inline=False)
 
         if msg is None:
@@ -212,6 +172,18 @@ class Nookipedia(commands.Cog):
         if tmp in self.critters:
             return tmp, None
         return await search(ctx, name, self.critters, "critter")
+
+    async def query_villager_list(self) -> list:
+        villagers = await self.api.get_category("Villagers")
+        for villager in villagers:
+            if "Category" in villager or "islander" in villager.lower():
+                villagers.remove(villager)
+        return villagers
+
+    async def query_critter_list(self) -> list:
+        bugs = await self.api.get_category("New_Horizons_fish")
+        fish = await self.api.get_category("New_Horizons_bugs")
+        return bugs + fish
 
 
 def setup(bot):

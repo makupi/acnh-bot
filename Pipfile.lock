@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "e7cb5e36a427e5fc66ec4a2544bf9127480674178843533d4da560357d39f818"
+            "sha256": "422756f4e9afbe2429f3c946e27496f5930293f3cf798b0e66c3e4a9204a0590"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -14,13 +14,6 @@
         ]
     },
     "default": {
-        "aiocontextvars": {
-            "hashes": [
-                "sha256:885daf8261818767d8f7cbd79f9d4482d118f024b6586ef6e67980236a27bfa3",
-                "sha256:f027372dc48641f683c559f247bd84962becaacdc9ba711d583c3871fb5652aa"
-            ],
-            "version": "==0.2.2"
-        },
         "aiohttp": {
             "hashes": [
                 "sha256:1e984191d1ec186881ffaed4581092ba04f7c61582a177b187d3a2f07ed9719e",
@@ -45,6 +38,14 @@
             ],
             "index": "pypi",
             "version": "==1.4.2"
+        },
+        "async-nookipedia": {
+            "hashes": [
+                "sha256:7581c5139795079f80d94755174cc0ec7175f0adb12c499d848989180dc07a0b",
+                "sha256:b7422d70f8b26f68d5d417979c0e1a70b553a7ad58e406b2111a03e10ac4c05a"
+            ],
+            "index": "pypi",
+            "version": "==0.0.1"
         },
         "async-timeout": {
             "hashes": [
@@ -113,11 +114,11 @@
         },
         "gino": {
             "hashes": [
-                "sha256:1727e4d1e19571e99dd72cd558e94d93f883f8b0aade207450924639578f2120",
-                "sha256:5c4b70783198c89c138a49c2921ecea894003de54d02c7bc3542e45d506d198b"
+                "sha256:0924f16e02f33f046ad3aa9bc02a7ac7cd72f89261f4447ab54fd789eb3b65fc",
+                "sha256:5750575d25b458ac8c484f324310042485ecd8039ae67fc82bc34e06182c2737"
             ],
             "index": "pypi",
-            "version": "==0.8.6"
+            "version": "==1.0.0"
         },
         "idna": {
             "hashes": [
@@ -125,6 +126,13 @@
                 "sha256:a068a21ceac8a4d63dbfd964670474107f541babbd2250d61922f029858365fa"
             ],
             "version": "==2.9"
+        },
+        "importlib-metadata": {
+            "hashes": [
+                "sha256:2a688cbaa90e0cc587f1df48bdc97a6eadccdcd9c35fb3f976a09e3b5016d90f",
+                "sha256:34513a8a0c4962bc66d35b359558fd8a5e10cd472d37aec5f66858addef32c1e"
+            ],
+            "version": "==1.6.0"
         },
         "mako": {
             "hashes": [
@@ -312,6 +320,13 @@
                 "sha256:e15199cdb423316e15f108f51249e44eb156ae5dba232cb73be555324a1d49c2"
             ],
             "version": "==1.4.2"
+        },
+        "zipp": {
+            "hashes": [
+                "sha256:aa36550ff0c0b7ef7fa639055d797116ee891440eac1a56f378e2d3179e0320b",
+                "sha256:c599e4d75c98f6798c509911d08a22e6c021d074469042177c8c86fb92eefd96"
+            ],
+            "version": "==3.1.0"
         }
     },
     "develop": {}

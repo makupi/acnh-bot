@@ -132,8 +132,8 @@ class Nookipedia(commands.Cog):
             return
         c = await self.api.get_critter(name)
         embed = await create_embed(title=name, url=c.link)
-        if c.catch_phrase:
-            embed.description = f"*{c.catch_phrase}*"
+        if c.caught:
+            embed.description = f"*{c.caught}*"
         embed.set_thumbnail(url=c.image)
         embed.set_footer(
             text="Powered by https://nookipedia.com/ (critter is currently in beta)"

@@ -2,14 +2,13 @@ import asyncio
 import random
 from pathlib import Path
 
-import discord
-from discord.ext import commands
-
 import acnh.database
+import discord
 from acnh.database.models import Guild
 from acnh.utils import config, get_guild_prefix
+from discord.ext import commands
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 invite_link = "https://discordapp.com/api/oauth2/authorize?client_id={}&scope=bot&permissions=8192"
 

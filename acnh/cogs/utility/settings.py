@@ -1,8 +1,6 @@
 import discord
-from discord.ext import commands
-
 from acnh.database.models import Guild
-from acnh.utils import create_embed
+from discord.ext import commands
 
 
 class Settings(commands.Cog):
@@ -29,6 +27,15 @@ class Settings(commands.Cog):
 
         embed.add_field(name="To", value=new_prefix)
         await ctx.channel.send(embed=embed)
+
+    @prefix.error
+    async def prefix_error_handler(self, ctx, error):
+        if isinstance(error, commands.MissingPermissions):
+            await ctx.send(
+                embed=discord.Embed(
+                    description="Sorry, you need `MANAGE SERVER` permission to change the prefix!"
+                )
+            )
 
 
 def setup(bot):

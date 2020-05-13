@@ -1,40 +1,7 @@
-import difflib
-import json
-
-import aiohttp
-import discord
-from discord.ext import commands
-
 from acnh.utils import config, create_embed, wait_for_choice
+from discord.ext import commands
 from fuzzywuzzy import process as fuzzy_search
 from nookipedia import Nookipedia as NookipediaAPI
-
-# match to list of villagers with difflib.get_close_matches
-
-VILLAGER_API = "https://nookipedia.com/api/villager/{name}/"
-CRITTER_API = "https://nookipedia.com/api/critter/{name}/"
-CATEGORY_API = (
-    "https://nookipedia.com/w/api.php?action=query&list=categorymembers&&cmlimit=max&format=json&cmtitle"
-    "=Category:{}"
-)
-
-
-async def fetch_json(url, headers=None):
-    if headers is None:
-        headers = {}
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url, headers=headers) as response:
-            return await response.json()
-
-
-async def fetch_villager(name, api_key):
-    header = {"X-API-KEY": api_key}
-    return await fetch_json(VILLAGER_API.format(name=name), headers=header)
-
-
-async def fetch_critter(name, api_key):
-    headers = {"X-API-KEY": api_key}
-    return await fetch_json(CRITTER_API.format(name=name), headers=headers)
 
 
 def split_string_categories(string):

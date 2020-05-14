@@ -1,3 +1,4 @@
+import acnh.database as db
 import discord
 from acnh.database.models import Guild
 from discord.ext import commands
@@ -10,6 +11,10 @@ class Settings(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         print(f"{type(self).__name__} Cog ready.")
+
+    @commands.Cog.listener()
+    async def on_guild_join(self, guild):
+        _ = await db.query_guild(guild.id)
 
     @commands.has_permissions(manage_guild=True)
     @commands.command()

@@ -1,10 +1,9 @@
 from datetime import datetime
 
 import discord
-from discord.ext import commands
-
-from acnh.database.models import Turnip
+from acnh.database.models import Guild, Turnip
 from acnh.utils import create_embed, get_guild_prefix
+from discord.ext import commands
 
 REPLACE_EMOJI = "♻️"
 BELL_EMOJI = "🔔"
@@ -118,7 +117,7 @@ class Turnips(commands.Cog):
         await self.new_listing(ctx, price, code, True)
 
     @turnip.command()
-    async def buy(self, ctx, price, code):
+    async def buy(self, ctx, price: int, code: str):
         await self.new_listing(ctx, price, code, False)
 
     @turnip.command()
@@ -195,6 +194,15 @@ class Turnips(commands.Cog):
             await ctx.send(embed=embed)
             return True
         return False
+
+    @turnip.command()
+    async def test(self, ctx):
+        data = (
+            await Turnip.load(guild=Guild)
+            .query.where(Guild.local_turnips == False)
+            .gino.all()
+        )
+        print(data)
 
 
 def setup(bot):

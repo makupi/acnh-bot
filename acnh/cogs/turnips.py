@@ -1,16 +1,13 @@
 from datetime import datetime
 
 import discord
-<<<<<<< HEAD
 from acnh.database.models import Guild, Turnip
-=======
-from acnh.database.models import Turnip
->>>>>>> master
 from acnh.utils import create_embed, get_guild_prefix
 from discord.ext import commands
 
 REPLACE_EMOJI = "♻️"
 BELL_EMOJI = "🔔"
+BELLS_EMOJI_ID = 710567500370280488
 
 
 def parse_timedelta(td):
@@ -46,12 +43,35 @@ def add_listings(embed, listings):
         )
 
 
+async def query_listings(guild_id: int, is_selling: bool):
+    guild = await Guild.get(guild_id)
+    if guild.local_turnips:
+        # load only local listings
+        query = Turnip.query.where(Turnip.is_selling == is_selling).where(
+            Turnip.guild_id == guild_id
+        )
+    else:
+        # load all listings, exclude the ones where global is disabled
+        query = Turnip.load(guild=Guild).query.where(Guild.local_turnips is False)
+    if is_selling:
+        query = query.order_by(Turnip.price.desc())
+    else:
+        query = query.order_by(Turnip.price.asc())
+    print(query)
+    return await query.gino.all()
+
+
 class Turnips(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
     @commands.Cog.listener()
     async def on_ready(self):
+        global BELL_EMOJI
+        bells = self.bot.get_emoji(BELLS_EMOJI_ID)
+        print(bells)
+        if bells is not None:
+            BELL_EMOJI = bells
         print(f"{type(self).__name__} Cog ready.")
 
     @commands.group(invoke_without_command=True, pass_context=True)
@@ -66,22 +86,14 @@ class Turnips(commands.Cog):
 
     @list.command(aliases=["sell"])
     async def selling(self, ctx):
-        listings = (
-            await Turnip.query.where(Turnip.is_selling)
-            .order_by(Turnip.price.desc())
-            .gino.all()
-        )
+        listings = await query_listings(ctx.guild.id, is_selling=True)
         embed = await create_embed(title="*Listings for Selling Turnips*")
         add_listings(embed, listings)
         await ctx.send(embed=embed)
 
     @list.command(aliases=["buy"])
     async def buying(self, ctx):
-        listings = (
-            await Turnip.query.where(Turnip.is_selling is False)
-            .order_by(Turnip.price.asc())
-            .gino.all()
-        )
+        listings = await query_listings(ctx.guild.id, is_selling=False)
         embed = await create_embed(title="*Listings for Buying Turnips*")
         add_listings(embed, listings)
         await ctx.send(embed=embed)
@@ -200,13 +212,21 @@ class Turnips(commands.Cog):
         return False
 
     @turnip.command()
-    async def test(self, ctx):
-        data = (
-            await Turnip.load(guild=Guild)
-            .query.where(Guild.local_turnips == False)
-            .gino.all()
-        )
-        print(data)
+    async def test(self, ctx, is_selling: bool):
+        listings = await query_listings(ctx.guild.id, is_selling)
+        print(listings)
+        # listings = (
+        #     await Turnip.query.where(Turnip.is_selling)
+        #         .order_by(Turnip.price.desc())
+        #         .gino.all()
+        # )
+
+        # data = (
+        #     await Turnip.load(guild=Guild)
+        #     .query.where(Guild.local_turnips == False)
+        #     .gino.all()
+        # )
+        # print(data)
 
 
 def setup(bot):

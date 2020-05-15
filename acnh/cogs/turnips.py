@@ -37,7 +37,7 @@ def add_listings(embed, listings):
     for listing in listings:
         embed.add_field(
             name=f"{listing.price} {BELL_EMOJI}",
-            value=f"Invite Code: {listing.invite_key} - \
+            value=f"Dodo Code: {listing.invite_key} - \
                     Open since {parse_timedelta((datetime.now() - listing.open_time))}\n "
             f"User <{listing.user_id}>",
             inline=False,
@@ -45,23 +45,18 @@ def add_listings(embed, listings):
 
 
 async def query_listings(guild_id: int, is_selling: bool):
-    print(f"querying <{guild_id}> for is selling? {is_selling}")
     guild = await db.query_guild(guild_id)
     if guild.local_turnips:
-        print("local turnips")
         # load only local listings
-        query = Turnip.query.where(Turnip.is_selling == is_selling).where(
-            Turnip.guild_id == guild_id
-        )
+        query = Turnip.query.where(Turnip.guild_id == guild_id)
     else:
-        print("global turnips")
         # load all listings, exclude the ones where global is disabled
         query = Turnip.load(guild=Guild).query.where(Guild.local_turnips == False)
+    query = query.where(Turnip.is_selling == is_selling)
     if is_selling:
         query = query.order_by(Turnip.price.desc())
     else:
         query = query.order_by(Turnip.price.asc())
-    print(query)
     return await query.gino.all()
 
 
@@ -116,9 +111,9 @@ class Turnips(commands.Cog):
             description=f"""Use the commands below to start trading turnips!
                             Don't forget to stop your listing once you're done.\n
 **Commands**
-*Selling/Buying*
+*Selling/Buying (Selling to Nook's Cranny, Buying from Daisy)*
 ```
-{prefix}turnip sell/buy <price> <invite-code>
+{prefix}turnip sell/buy <price> <dodo-code>
     {prefix}turnip sell 600 6c63f04f
     {prefix}turnip buy 90 6c63f04f
 {prefix}turnip stop

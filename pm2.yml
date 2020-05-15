@@ -1,5 +1,5 @@
 apps:
     script: '/bin/bash'
     name: 'daisy'
-    args: ['-c', 'pipenv run python3 run.py']
+    args: ['-c', 'pipenv run alembic upgrade head; pipenv run python3 run.py']
 

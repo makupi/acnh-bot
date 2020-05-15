@@ -105,7 +105,9 @@ class Owner(commands.Cog, command_attrs=dict(hidden=True)):
     @commands.command()
     async def setup(self, ctx):
         for guild in ctx.bot.guilds:
-            _ = await db.query_guild(guild.id)
+            g = await db.query_guild(guild.id)
+            if g.local_turnips is None:
+                await g.update(local_turnips=False).apply()
 
 
 def setup(bot):

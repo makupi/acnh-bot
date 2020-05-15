@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import acnh.database as db
 import discord
 from acnh.database.models import Guild, Turnip
 from acnh.utils import create_embed, get_guild_prefix
@@ -44,21 +45,31 @@ def add_listings(embed, listings):
 
 
 async def query_listings(guild_id: int, is_selling: bool):
-    guild = await Guild.get(guild_id)
+    print(f"querying <{guild_id}> for is selling? {is_selling}")
+    guild = await db.query_guild(guild_id)
     if guild.local_turnips:
+        print("local turnips")
         # load only local listings
         query = Turnip.query.where(Turnip.is_selling == is_selling).where(
             Turnip.guild_id == guild_id
         )
     else:
+        print("global turnips")
         # load all listings, exclude the ones where global is disabled
-        query = Turnip.load(guild=Guild).query.where(Guild.local_turnips is False)
+        query = Turnip.load(guild=Guild).query.where(Guild.local_turnips == False)
     if is_selling:
         query = query.order_by(Turnip.price.desc())
     else:
         query = query.order_by(Turnip.price.asc())
     print(query)
     return await query.gino.all()
+
+
+async def config_local_turnips(guild_id: int, local: bool):
+    guild = await db.query_guild(guild_id)
+    if guild.local_turnips == local:
+        return
+    await guild.update(local_turnips=local).apply()
 
 
 class Turnips(commands.Cog):
@@ -105,19 +116,33 @@ class Turnips(commands.Cog):
             description=f"""Use the commands below to start trading turnips!
                             Don't forget to stop your listing once you're done.\n
 **Commands**
+*Selling/Buying*
 ```
-- {prefix}turnip sell/buy <price> <invite-code>
-    - {prefix}turnip sell 600 6c63f04f
-    - {prefix}turnip buy 90 6c63f04f
-- {prefix}turnip list
+{prefix}turnip sell/buy <price> <invite-code>
+    {prefix}turnip sell 600 6c63f04f
+    {prefix}turnip buy 90 6c63f04f
+{prefix}turnip stop
+    Delete your active listing once you're done!
+```
+*Show Listings*
+```
+{prefix}turnip list
     Lists both selling and buying listings
-- {prefix}turnip list selling/buying
+{prefix}turnip list selling/buying
     Lists either selling or buying
-- {prefix}turnip stop
-    Stop your active listing. Please use this once you're done!
-- {prefix}report <user id> <message>
+```
+*Report inactive/wrong listings*
+```
+{prefix}report <user id> <message>
     Report inactive/wrong listings e.g.
-    - {prefix}report 309232625892065282 listing open but gates closed
+    {prefix}report 309232625892065282 listing open but gates closed
+```
+*Turnip config (Requires MANAGE SERVER permissions)*
+```
+{prefix}turnip config <arguments>
+    Set the turnip trading to either local or global! 
+    {prefix}turnip config local
+    {prefix}turnip config global
 ```
 **Active listings**
 """
@@ -146,6 +171,31 @@ class Turnips(commands.Cog):
         )
         set_footer(embed, ctx)
         await ctx.send(embed=embed)
+
+    @turnip.command()
+    @commands.has_permissions(manage_guild=True)
+    async def config(self, ctx, *args):
+        args = [arg.lower() for arg in args]
+        embed = await create_embed(description="Turnip trading is set to ")
+        if "local" in args:
+            await config_local_turnips(guild_id=ctx.guild.id, local=True)
+        elif "global" in args:
+            await config_local_turnips(guild_id=ctx.guild.id, local=False)
+
+        guild = await db.query_guild(ctx.guild.id)
+        c = "local" if guild.local_turnips else "global"
+        embed.description += f"`{c}`!"
+        await ctx.send(embed=embed)
+
+    @config.error
+    async def config_error_handler(self, ctx, error):
+        if isinstance(error, commands.MissingPermissions):
+            await ctx.send(
+                embed=discord.Embed(
+                    description="Sorry, you need `MANAGE SERVER` permission to change the turnip trading config!",
+                    color=discord.Color(0xFF0000),
+                )
+            )
 
     async def new_listing(self, ctx, price, code, is_selling):
         if await self.check_user_banned(ctx):

@@ -61,7 +61,6 @@ class Turnips(commands.Cog):
     async def on_ready(self):
         global BELL_EMOJI
         bells = self.bot.get_emoji(BELLS_EMOJI_ID)
-        print(bells)
         if bells is not None:
             BELL_EMOJI = bells
         print(f"{type(self).__name__} Cog ready.")

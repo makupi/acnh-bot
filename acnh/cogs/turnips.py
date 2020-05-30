@@ -1,10 +1,11 @@
 from datetime import datetime
 
-import acnh.database as db
 import discord
+from discord.ext import commands
+
+import acnh.database as db
 from acnh.database.models import Guild, Turnip
 from acnh.utils import create_embed, get_guild_prefix
-from discord.ext import commands
 
 REPLACE_EMOJI = "♻️"
 BELL_EMOJI = "🔔"
@@ -27,21 +28,6 @@ def parse_selling(is_selling):
     if is_selling:
         return "Selling"
     return "Buying"
-
-
-def add_listings(embed, listings):
-    if len(listings) == 0:
-        embed.description = (
-            "*Currently no active listings for this category. Please check back later!*"
-        )
-    for listing in listings:
-        embed.add_field(
-            name=f"{listing.price} {BELL_EMOJI}",
-            value=f"Dodo Code: {listing.invite_key} - \
-                    Open since {parse_timedelta((datetime.now() - listing.open_time))}\n "
-            f"User <{listing.user_id}>",
-            inline=False,
-        )
 
 
 async def query_listings(guild_id: int, is_selling: bool):
@@ -80,6 +66,22 @@ class Turnips(commands.Cog):
             BELL_EMOJI = bells
         print(f"{type(self).__name__} Cog ready.")
 
+    def add_listings(self, embed, listings):
+        if len(listings) == 0:
+            embed.description = "*Currently no active listings for this category. Please check back later!*"
+        for listing in listings:
+            user = self.bot.get_user(listing.user_id)
+            user_str = f"**User**: {user.name}#{user.discriminator} <{user.id}>"
+            if user is None:
+                user_str = f"**User**: <{listing.user_id}>"
+            embed.add_field(
+                name=f"{listing.price} {BELL_EMOJI}",
+                value=f"**Dodo Code**: {listing.invite_key} - \
+                        Open since {parse_timedelta((datetime.now() - listing.open_time))}\n "
+                f"{user_str}",
+                inline=False,
+            )
+
     @commands.group(invoke_without_command=True, pass_context=True)
     async def turnip(self, ctx):
         """: Use for info about turnip listings!"""
@@ -94,14 +96,14 @@ class Turnips(commands.Cog):
     async def selling(self, ctx):
         listings = await query_listings(ctx.guild.id, is_selling=True)
         embed = await create_embed(title="*Listings for Selling Turnips*")
-        add_listings(embed, listings)
+        self.add_listings(embed, listings)
         await ctx.send(embed=embed)
 
     @list.command(aliases=["buy"])
     async def buying(self, ctx):
         listings = await query_listings(ctx.guild.id, is_selling=False)
         embed = await create_embed(title="*Listings for Buying Turnips*")
-        add_listings(embed, listings)
+        self.add_listings(embed, listings)
         await ctx.send(embed=embed)
 
     @turnip.command()

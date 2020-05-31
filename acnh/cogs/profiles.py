@@ -32,6 +32,9 @@ def is_northern_str(is_northern):
 
 
 def get_fruit(fruit: str):
+    fruit = FRUITS.get(fruit)
+    if fruit is None:
+        return "Not Set"
     return f"{FRUITS.get(fruit)} {fruit.capitalize()}"
 
 

@@ -27,8 +27,12 @@ def is_northern_str(is_northern):
     if is_northern is None:
         return "Not Set"
     if is_northern:
-        return "Northern Hemisphere"
-    return "Southern Hemisphere"
+        return "Northern"
+    return "Southern"
+
+
+def get_fruit(fruit: str):
+    return f"{FRUITS.get(fruit)} {fruit.capitalize()}"
 
 
 class Profiles(commands.Cog):
@@ -42,7 +46,21 @@ class Profiles(commands.Cog):
     @commands.group(invoke_without_command=True, pass_context=True)
     async def profile(self, ctx, user: discord.User = None):
         """: Use for info about turnip listings!"""
-        print(f"profile {user}")
+        if user is None:
+            user = ctx.author
+        profile = await query_profile(user.id)
+
+        embed = await create_embed()
+        embed.add_field(name="Island Name", value=profile.island_name)
+        embed.add_field(name="Character Name", value=profile.user_name)
+        embed.add_field(name="\u200c", value="\u200c")
+        embed.add_field(name="Hemisphere", value=is_northern_str(profile.is_northern))
+        embed.add_field(name="Fruit", value=get_fruit(profile.fruit))
+        embed.add_field(name="\u200c", value="\u200c")
+        embed.add_field(name="Friend Code", value=profile.friend_code)
+        embed.set_thumbnail(url=user.avatar_url)
+        embed.set_footer(text=f"Profile of {user.name}#{user.discriminator}")
+        await ctx.send(embed=embed)
 
     @profile.command()
     async def island(self, ctx, island_name: str):
@@ -111,6 +129,9 @@ class Profiles(commands.Cog):
     @profile.command(aliases=["fc", "code"])
     async def friendcode(self, ctx, friend_code: str):
         profile = await query_profile(ctx.author.id)
+        friend_code = friend_code.upper()
+        if "SW-" not in friend_code:
+            friend_code = f"SW-{friend_code}"
         await send_changed_embed(
             ctx, changed="Friend code", before=profile.friend_code, after=friend_code,
         )

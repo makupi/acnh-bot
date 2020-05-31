@@ -32,17 +32,19 @@ class Help(commands.Cog):
 
     @commands.command()
     async def help(self, ctx, command_name: str = None):
-        """ Shows this help message."""
-        embed = await create_embed(title="Help")
+        """*Shows this help message*"""
+        embed = await create_embed(
+            title="Help",
+            description=f"*Use `{ctx.prefix}help <command-name>` to get a more detailed help for a specific command!*"
+            f"\n`<value>` is for required arguments and `[value]` for optional arguments!",
+        )
+        embed.set_footer(
+            text="Thank you for using Daisy <3", icon_url=self.bot.user.avatar_url
+        )
         if command_name is not None:
             cmd = ctx.bot.all_commands.get(command_name)
             if cmd is not None:
-                try:
-                    embed.add_field(
-                        name=cmd.name, value=cmd.help.format(prefix=ctx.prefix)
-                    )
-                except Exception as ex:
-                    print(ex)
+                embed.add_field(name=cmd.name, value=cmd.help.format(prefix=ctx.prefix))
                 return await ctx.send(embed=embed)
         embed = await create_bot_help(embed, self.get_bot_mapping())
         await ctx.send(embed=embed)

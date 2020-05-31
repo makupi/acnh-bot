@@ -1,5 +1,6 @@
-from acnh.utils import config, create_embed, wait_for_choice
 from discord.ext import commands
+
+from acnh.utils import config, create_embed, wait_for_choice
 from fuzzywuzzy import process as fuzzy_search
 from nookipedia import Nookipedia as NookipediaAPI
 
@@ -49,7 +50,7 @@ class Nookipedia(commands.Cog):
         self.personality_data = await self.query_personalities()
         print(f"{type(self).__name__} Cog ready.")
 
-    @commands.command("testall")
+    @commands.command("testall", hidden=True)
     @commands.is_owner()
     async def test_all(self, ctx):
         villager_command = self.bot.get_command("villager")
@@ -62,8 +63,10 @@ class Nookipedia(commands.Cog):
 
     @commands.command()
     async def villager(self, ctx, *, name: str):
-        """: Look up a villager by name
-        Use ;villager marshal to get information about marshal!"""
+        """*Look up a villager by name*
+
+        **Usage**: `{prefix}villager <name>`
+        **Example**: `{prefix}villager marshal` """
         await ctx.trigger_typing()
         name, msg = await self.find_villager(ctx, name)
         if name is None:
@@ -91,8 +94,10 @@ class Nookipedia(commands.Cog):
 
     @commands.command(aliases=["bug", "fish"])
     async def critter(self, ctx, *, name: str):
-        """: Look up a critter by name
-        Use ;critter Sea Bass to get information about the sea bass, bet it's at least a C+!"""
+        """*Look up a critter by name*
+
+        **Usage**: `{prefix}critter <name>`
+        **Example**: `{prefix}critter sea bass` """
         await ctx.trigger_typing()
         name, msg = await self.find_critter(ctx, name)
         if name is None:
@@ -131,6 +136,9 @@ class Nookipedia(commands.Cog):
 
     @commands.command()
     async def personalities(self, ctx):
+        """*Get a list of personalities*
+
+        **Example**: `{prefix}personalities` """
         embed = await create_embed(title="Personalities")
         desc = ""
         for k in self.personality_data.keys():
@@ -140,6 +148,10 @@ class Nookipedia(commands.Cog):
 
     @commands.command()
     async def personality(self, ctx, name: str):
+        """*Get all villagers with a certain personality*
+
+        **Usage**: `{prefix}personality <name>`
+        **Example**: `{prefix}personality jock` """
         name = name.capitalize()
         embed = await create_embed()
         if name not in self.personality_data:

@@ -83,7 +83,7 @@ class Turnips(commands.Cog):
 
     @commands.group(invoke_without_command=True, pass_context=True)
     async def turnip(self, ctx):
-        """: Use for info about turnip listings!"""
+        """*Use for special info page about turnip trading!*"""
         await self.info(ctx)
 
     @turnip.group(invoke_without_command=True, pass_context=True)
@@ -107,7 +107,7 @@ class Turnips(commands.Cog):
 
     @turnip.command()
     async def info(self, ctx):
-        prefix = get_guild_prefix(self.bot, ctx.guild.id)
+        prefix = ctx.prefix
         embed = await create_embed(
             description=f"""Use the commands below to start trading turnips!
                             Don't forget to stop your listing once you're done.\n

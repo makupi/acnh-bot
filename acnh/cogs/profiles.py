@@ -45,7 +45,19 @@ class Profiles(commands.Cog):
 
     @commands.group(invoke_without_command=True, pass_context=True)
     async def profile(self, ctx, user: discord.User = None):
-        """: Use for info about turnip listings!"""
+        """*Look up your or your friends profile*
+
+        `[user]` is optional and either a user-id or a user mention
+        **Usage**: `{prefix}profile [user]`
+        **Example**: `{prefix}profile`
+
+        To setup your own profile use the following commands
+        **Usage**: `{prefix}profile <island|name|fruit|hemisphere|fc> <value>`
+        **Examples**:
+            `{prefix}profile name Daisy`
+            `{prefix}profile fruit cherry`
+            `{prefix}profile hemisphere northern`
+        """
         if user is None:
             user = ctx.author
         profile = await query_profile(user.id)

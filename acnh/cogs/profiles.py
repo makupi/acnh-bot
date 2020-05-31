@@ -32,10 +32,10 @@ def is_northern_str(is_northern):
 
 
 def get_fruit(fruit: str):
-    fruit = FRUITS.get(fruit)
-    if fruit is None:
+    fruit_emoji = FRUITS.get(fruit)
+    if fruit_emoji is None:
         return "Not Set"
-    return f"{FRUITS.get(fruit)} {fruit.capitalize()}"
+    return f"{fruit_emoji} {fruit.capitalize()}"
 
 
 class Profiles(commands.Cog):

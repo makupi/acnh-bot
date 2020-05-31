@@ -23,7 +23,9 @@ class Utility(commands.Cog):
 
     @commands.command()
     async def ping(self, ctx):
-        """: Current ping and latency of the bot."""
+        """*Current ping and latency of the bot*
+
+        **Example**: `{prefix}ping`"""
         embed = await create_embed()
         before_time = time.time()
         msg = await ctx.send(embed=embed)
@@ -35,7 +37,9 @@ class Utility(commands.Cog):
 
     @commands.command()
     async def uptime(self, ctx):
-        """: Current uptime of the bot."""
+        """*Current uptime of the bot*
+
+        **Example**: `{prefix}uptime`"""
         current_time = datetime.now().replace(microsecond=0)
         embed = await create_embed(
             description=f"Time since I went online: {current_time - self.start_time}."
@@ -44,12 +48,17 @@ class Utility(commands.Cog):
 
     @commands.command()
     async def starttime(self, ctx):
-        """: Start time of the bot."""
+        """*When the bot was started*
+
+        **Example**: `{prefix}starttime`"""
         embed = await create_embed(description=f"I'm up since {self.start_time}.")
         await ctx.send(embed=embed)
 
     @commands.command()
     async def info(self, ctx):
+        """*Shows stats and infos about the bot*
+
+        **Example**: `{prefix}info`"""
         embed = await create_embed(title="Daisy")
         embed.url = f"https://top.gg/bot/{self.bot.user.id}"
         embed.set_thumbnail(url=self.bot.user.avatar_url)
@@ -91,8 +100,12 @@ class Utility(commands.Cog):
         )
         await ctx.send(embed=embed)
 
-    @commands.command(aliases=["socials", "invite", "support"])
-    async def links(self, ctx):
+    @commands.command(aliases=["socials", "links", "support"])
+    async def invite(self, ctx):
+        """*Shows invite link and other socials for the bot*
+
+        **Aliases**: `socials`, `links`, `support`
+        **Example**: `{prefix}invite`"""
         embed = await create_embed()
         embed.description = (
             f"[Invite]({self.bot.invite}) | "

@@ -33,6 +33,7 @@ bot = commands.AutoShardedBot(command_prefix=get_prefix)
 bot.version = __version__
 bot.active_commands = 0
 bot.total_commands = 0
+bot.remove_command("help")
 
 
 async def preload_guild_data():

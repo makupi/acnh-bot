@@ -34,7 +34,6 @@ class Help(commands.Cog):
     async def help(self, ctx, command_name: str = None):
         """*Shows this help message*"""
         prefix = get_guild_prefix(ctx.bot, ctx.guild.id)
-        print(f"prefix: {prefix}")
         embed = await create_embed(
             title="Help",
             description=f"*Use `{prefix}help <command-name>` to get a more detailed help for a specific command!*"

@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 
-from acnh.utils import create_embed
+from acnh.utils import create_embed, get_guild_prefix
 
 
 async def create_bot_help(embed, mapping):
@@ -33,9 +33,11 @@ class Help(commands.Cog):
     @commands.command()
     async def help(self, ctx, command_name: str = None):
         """*Shows this help message*"""
+        prefix = get_guild_prefix(ctx.bot, ctx.guild.id)
+        print(f"prefix: {prefix}")
         embed = await create_embed(
             title="Help",
-            description=f"*Use `{ctx.prefix}help <command-name>` to get a more detailed help for a specific command!*"
+            description=f"*Use `{prefix}help <command-name>` to get a more detailed help for a specific command!*"
             f"\n`<value>` is for required arguments and `[value]` for optional arguments!",
         )
         embed.set_footer(
@@ -44,7 +46,7 @@ class Help(commands.Cog):
         if command_name is not None:
             cmd = ctx.bot.all_commands.get(command_name)
             if cmd is not None:
-                embed.add_field(name=cmd.name, value=cmd.help.format(prefix=ctx.prefix))
+                embed.add_field(name=cmd.name, value=cmd.help.format(prefix=prefix))
                 return await ctx.send(embed=embed)
         embed = await create_bot_help(embed, self.get_bot_mapping())
         await ctx.send(embed=embed)

@@ -9,7 +9,7 @@ import acnh.database
 from acnh.database.models import Guild
 from acnh.utils import config, get_guild_prefix
 
-__version__ = "0.5.2"
+__version__ = "0.5.3"
 
 invite_link = "https://discordapp.com/api/oauth2/authorize?client_id={}&scope=bot&permissions=8192"
 
@@ -56,14 +56,24 @@ async def on_ready():
     )
     bot.guild_data = await preload_guild_data()
     bot.loop.create_task(presence_task())
+    bot.loop.create_task(sync_guild_data())
 
 
 async def presence_task():
     while True:
-        await bot.change_presence(
-            activity=discord.Game(random.choice(presence_strings))
-        )
+        await bot.change_presence(activity=discord.Game(random.choice(presence_strings)))
         await asyncio.sleep(60)
+
+
+async def sync_guild_data():
+    while True:
+        try:
+            guild_data = await preload_guild_data()
+            if guild_data:
+                bot.guild_data = guild_data
+        except:
+            pass
+        await asyncio.sleep(300)
 
 
 @bot.before_invoke

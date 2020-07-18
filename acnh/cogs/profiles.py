@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 
 from acnh.database.models import Profile
-from acnh.utils import create_embed
+from acnh.utils import create_embed, get_guild_prefix
 
 FRUITS = {"apple": "🍎", "cherry": "🍒", "orange": "🍊", "pear": "🍐", "peach": "🍑"}
 
@@ -25,7 +25,7 @@ async def send_changed_embed(ctx, changed: str, before: str, after: str):
 
 def is_northern_str(is_northern):
     if is_northern is None:
-        return "Not Set"
+        return None
     if is_northern:
         return "Northern"
     return "Southern"
@@ -34,7 +34,7 @@ def is_northern_str(is_northern):
 def get_fruit(fruit: str):
     fruit_emoji = FRUITS.get(fruit)
     if fruit_emoji is None:
-        return "Not Set"
+        return None
     return f"{fruit_emoji} {fruit.capitalize()}"
 
 
@@ -47,7 +47,7 @@ class Profiles(commands.Cog):
         print(f"{type(self).__name__} Cog ready.")
 
     @commands.group(invoke_without_command=True, pass_context=True)
-    async def profile(self, ctx, user: discord.User = None):
+    async def profile(self, ctx, user_check: discord.User = None):
         """*Look up your or your friends profile*
 
         `[user]` is optional and either a user-id or a user mention
@@ -61,24 +61,52 @@ class Profiles(commands.Cog):
             `{prefix}profile fruit cherry`
             `{prefix}profile hemisphere northern`
         """
+        user = user_check
         if user is None:
             user = ctx.author
         profile = await query_profile(user.id)
 
         embed = await create_embed()
-        embed.add_field(name="Island Name", value=profile.island_name)
-        embed.add_field(name="Character Name", value=profile.user_name)
-        embed.add_field(name="\u200c", value="\u200c")
-        embed.add_field(name="Hemisphere", value=is_northern_str(profile.is_northern))
-        embed.add_field(name="Fruit", value=get_fruit(profile.fruit))
-        embed.add_field(name="\u200c", value="\u200c")
-        embed.add_field(name="Friend Code", value=profile.friend_code)
-        embed.set_thumbnail(url=user.avatar_url)
-        embed.set_footer(text=f"Profile of {user.name}#{user.discriminator}")
+        if profile.island_name != "Not Set":
+            embed.add_field(name="Island Name", value=profile.island_name)
+        if profile.user_name != "Not Set":
+            embed.add_field(name="Character Name", value=profile.user_name)
+            embed.add_field(name="\u200c", value="\u200c")
+        if is_northern_str(profile.is_northern):
+            embed.add_field(name="Hemisphere", value=is_northern_str(profile.is_northern))
+        if get_fruit(profile.fruit):
+            embed.add_field(name="Fruit", value=get_fruit(profile.fruit))
+            embed.add_field(name="\u200c", value="\u200c")
+        if profile.flower:
+            embed.add_field(name="Flower", value=profile.flower)
+        if profile.airport:
+            embed.add_field(name="Airport Color", value=profile.airport)
+            embed.add_field(name="\u200c", value="\u200c")
+        if profile.timezone:
+            embed.add_field(name="Timezone", value=profile.timezone)
+        if profile.friend_code != "Not Set":
+            embed.add_field(name="Friend Code", value=profile.friend_code)
+
+        if embed.fields:
+            embed.set_thumbnail(url=user.avatar_url)
+            embed.set_footer(text=f"Profile of {user.name}#{user.discriminator}")
+        else:
+            if user_check:
+                embed.description = f"{user_check.mention} hasn't configured their profile yet!"
+            else:
+                prefix = get_guild_prefix(self.bot, ctx.guild.id)
+                embed.description = (
+                    f"**You haven't configured your profile yet!**\n"
+                    f"To configure your profile use: \n`{prefix}profile <island|name|fruit|hemisphere|fc> <value>`\n"
+                    f"**Examples**:\n"
+                    f"`{prefix}profile name Daisy`\n"
+                    f"`{prefix}profile fruit cherry`\n"
+                    f"`{prefix}profile hemisphere northern`\n"
+                )
         await ctx.send(embed=embed)
 
     @profile.command()
-    async def island(self, ctx, island_name: str):
+    async def island(self, ctx, *, island_name: str):
         profile = await query_profile(ctx.author.id)
         await send_changed_embed(
             ctx, changed="Island name", before=profile.island_name, after=island_name,
@@ -86,13 +114,10 @@ class Profiles(commands.Cog):
         await profile.update(island_name=island_name).apply()
 
     @profile.command(aliases=["name"])
-    async def character(self, ctx, character_name: str):
+    async def character(self, ctx, *, character_name: str):
         profile = await query_profile(ctx.author.id)
         await send_changed_embed(
-            ctx,
-            changed="Character name",
-            before=profile.user_name,
-            after=character_name,
+            ctx, changed="Character name", before=profile.user_name, after=character_name,
         )
         await profile.update(user_name=character_name).apply()
 
@@ -100,9 +125,7 @@ class Profiles(commands.Cog):
     async def fruit(self, ctx, fruit: str):
         embed = await create_embed()
         if fruit not in FRUITS.keys():
-            embed.description = (
-                f"Fruit `{fruit}` not found! Please use one of the following: \n"
-            )
+            embed.description = f"Fruit `{fruit}` not found! Please use one of the following: \n"
             embed.description += f'`{", ".join(FRUITS.keys())}`'
             await ctx.send(embed=embed)
         else:
@@ -124,21 +147,14 @@ class Profiles(commands.Cog):
             after = False
             await profile.update(is_northern=False).apply()
         else:
-            embed = await create_embed(
-                description=f"Please use either `northern` or `southern`! "
-            )
+            embed = await create_embed(description=f"Please use either `northern` or `southern`! ")
             if profile.is_northern is None:
                 embed.description += "Currently not set!"
             else:
-                embed.description += (
-                    f"Currently set to {is_northern_str(profile.is_northern)}"
-                )
+                embed.description += f"Currently set to {is_northern_str(profile.is_northern)}"
             await ctx.send(embed=embed)
         await send_changed_embed(
-            ctx,
-            changed="Hemisphere",
-            before=is_northern_str(before),
-            after=is_northern_str(after),
+            ctx, changed="Hemisphere", before=is_northern_str(before), after=is_northern_str(after),
         )
 
     @profile.command(aliases=["fc", "code"])
@@ -151,6 +167,33 @@ class Profiles(commands.Cog):
             ctx, changed="Friend code", before=profile.friend_code, after=friend_code,
         )
         await profile.update(friend_code=friend_code).apply()
+
+    @profile.command()
+    async def flower(self, ctx, *, flower: str):
+        profile = await query_profile(ctx.author.id)
+        before = profile.flower
+        if not before:
+            before = "Not Set"
+        await profile.update(flower=flower).apply()
+        await send_changed_embed(ctx, changed="Flower", before=before, after=profile.flower)
+
+    @profile.command()
+    async def airport(self, ctx, *, airport: str):
+        profile = await query_profile(ctx.author.id)
+        before = profile.airport
+        if not before:
+            before = "Not Set"
+        await profile.update(airport=airport).apply()
+        await send_changed_embed(ctx, changed="Airport Color", before=before, after=profile.airport)
+
+    @profile.command()
+    async def timezone(self, ctx, *, timezone: str):
+        profile = await query_profile(ctx.author.id)
+        before = profile.timezone
+        if not before:
+            before = "Not Set"
+        await profile.update(timezone=timezone).apply()
+        await send_changed_embed(ctx, changed="Timezone", before=before, after=profile.timezone)
 
 
 def setup(bot):

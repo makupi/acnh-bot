@@ -3,6 +3,7 @@ from discord.ext import commands
 
 import acnh.database as db
 from acnh.database.models import Guild
+from acnh.utils import get_guild_prefix
 
 
 class Settings(commands.Cog):
@@ -19,12 +20,17 @@ class Settings(commands.Cog):
 
     @commands.has_permissions(manage_guild=True)
     @commands.command()
-    async def prefix(self, ctx, new_prefix: str):
+    async def prefix(self, ctx, new_prefix: str = None):
         """*Change your servers prefix*
 
         **Example**: `{prefix}prefix !`
         **Requires permission**: `MANAGER SERVER`
         """
+        if not new_prefix:
+            prefix = get_guild_prefix(self.bot, ctx.guild.id)
+            embed = discord.Embed(description=f"Prefix currently set to `{prefix}`")
+            await ctx.send(embed=embed)
+            return
         embed = discord.Embed(description="Prefix changed")
         guild = await Guild.get(ctx.guild.id)
         if guild is None:

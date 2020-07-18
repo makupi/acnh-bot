@@ -5,11 +5,10 @@ from datetime import datetime
 import discord
 from discord.ext import commands
 
-from acnh.utils import create_embed
+import acnh.database as db
+from acnh.utils import create_embed, get_guild_prefix
 
-PY_VERSION = (
-    f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
-)
+PY_VERSION = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
 
 
 class Utility(commands.Cog):
@@ -60,6 +59,10 @@ class Utility(commands.Cog):
 
         **Example**: `{prefix}info`"""
         embed = await create_embed(title="Daisy")
+        guild = await db.query_guild(ctx.guild.id)
+        turnip_config = "global"
+        if guild.local_turnips:
+            turnip_config = "local"
         embed.url = f"https://top.gg/bot/{self.bot.user.id}"
         embed.set_thumbnail(url=self.bot.user.avatar_url)
         embed.add_field(
@@ -72,10 +75,18 @@ class Utility(commands.Cog):
             inline=False,
         )
         embed.add_field(
+            name=f"Server Configuration",
+            value=f"```\n"
+            f"Prefix: {get_guild_prefix(self.bot, ctx.guild.id)}\n"
+            f"Turnip Trading: {turnip_config}```",
+            inline=False,
+        )
+        embed.add_field(
             name="Activity",
             value=f"```py\n"
             f"Processing {self.bot.active_commands} commands\n"
             f"{self.bot.total_commands} commands since startup```",
+            inline=False,
         )
         embed.add_field(
             name="Software Versions",
@@ -95,9 +106,7 @@ class Utility(commands.Cog):
             f"[Twitter](https://twitter.com/makubob)",
             inline=False,
         )
-        embed.set_footer(
-            text="Thank you for using Daisy <3", icon_url=self.bot.user.avatar_url
-        )
+        embed.set_footer(text="Thank you for using Daisy <3", icon_url=self.bot.user.avatar_url)
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["socials", "links", "support"])
@@ -115,9 +124,7 @@ class Utility(commands.Cog):
             f"[Github](https://github.com/makupi) | "
             f"[Twitter](https://twitter.com/makubob)"
         )
-        embed.set_footer(
-            text="Thank you for using Daisy <3", icon_url=self.bot.user.avatar_url
-        )
+        embed.set_footer(text="Thank you for using Daisy <3", icon_url=self.bot.user.avatar_url)
         await ctx.send(embed=embed)
 
 

@@ -1,9 +1,19 @@
+from datetime import datetime
+
 import discord
 from discord.ext import commands
 
 import acnh.database as db
 from acnh.database.models import Guild, Listing
 from acnh.utils import create_embed, get_guild_prefix
+
+
+def parse_timedelta(td):
+    minutes = round(td.seconds / 60)
+    tmp = f"{minutes} minute"
+    if minutes > 1:
+        tmp += "s"
+    return tmp
 
 
 async def query_listings(guild_id: int):
@@ -50,7 +60,11 @@ class Listings(commands.Cog):
         if listing:
             pass
         await Listing.create(
-            user_id=ctx.author.id, guild_id=ctx.guild.id, invite_key=dodo_code, message=message
+            user_id=ctx.author.id,
+            guild_id=ctx.guild.id,
+            invite_key=dodo_code,
+            message=message,
+            open_time=datetime.now(),
         )
         embed = await create_embed(
             description=f"Listing created. Please use `{prefix}close` once you're done!"
@@ -86,7 +100,8 @@ class Listings(commands.Cog):
                 user_str = f"**User**: <{listing.user_id}>"
             embed.add_field(
                 name=f"Dodo Code: **{listing.invite_key}**",
-                value=f"**Message**: *{listing.message}*\n{user_str}",
+                value=f"**Message**: *{listing.message}*\n{user_str}\n"
+                f"**Open since**: {parse_timedelta(datetime.now() - listing.open_time)}",
                 inline=False,
             )
         await ctx.send(embed=embed)

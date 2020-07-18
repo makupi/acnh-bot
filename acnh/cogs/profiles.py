@@ -77,8 +77,16 @@ class Profiles(commands.Cog):
         if get_fruit(profile.fruit):
             embed.add_field(name="Fruit", value=get_fruit(profile.fruit))
             embed.add_field(name="\u200c", value="\u200c")
+        if profile.flower:
+            embed.add_field(name="Flower", value=profile.flower)
+        if profile.airport:
+            embed.add_field(name="Airport Color", value=profile.airport)
+            embed.add_field(name="\u200c", value="\u200c")
+        if profile.timezone:
+            embed.add_field(name="Timezone", value=profile.timezone)
         if profile.friend_code != "Not Set":
             embed.add_field(name="Friend Code", value=profile.friend_code)
+
         if embed.fields:
             embed.set_thumbnail(url=user.avatar_url)
             embed.set_footer(text=f"Profile of {user.name}#{user.discriminator}")
@@ -98,7 +106,7 @@ class Profiles(commands.Cog):
         await ctx.send(embed=embed)
 
     @profile.command()
-    async def island(self, ctx, island_name: str):
+    async def island(self, ctx, *, island_name: str):
         profile = await query_profile(ctx.author.id)
         await send_changed_embed(
             ctx, changed="Island name", before=profile.island_name, after=island_name,
@@ -106,7 +114,7 @@ class Profiles(commands.Cog):
         await profile.update(island_name=island_name).apply()
 
     @profile.command(aliases=["name"])
-    async def character(self, ctx, character_name: str):
+    async def character(self, ctx, *, character_name: str):
         profile = await query_profile(ctx.author.id)
         await send_changed_embed(
             ctx, changed="Character name", before=profile.user_name, after=character_name,
@@ -159,6 +167,33 @@ class Profiles(commands.Cog):
             ctx, changed="Friend code", before=profile.friend_code, after=friend_code,
         )
         await profile.update(friend_code=friend_code).apply()
+
+    @profile.command()
+    async def flower(self, ctx, *, flower: str):
+        profile = await query_profile(ctx.author.id)
+        before = profile.flower
+        if not before:
+            before = "Not Set"
+        await profile.update(flower=flower).apply()
+        await send_changed_embed(ctx, changed="Flower", before=before, after=profile.flower)
+
+    @profile.command()
+    async def airport(self, ctx, *, airport: str):
+        profile = await query_profile(ctx.author.id)
+        before = profile.airport
+        if not before:
+            before = "Not Set"
+        await profile.update(airport=airport).apply()
+        await send_changed_embed(ctx, changed="Airport Color", before=before, after=profile.airport)
+
+    @profile.command()
+    async def timezone(self, ctx, *, timezone: str):
+        profile = await query_profile(ctx.author.id)
+        before = profile.timezone
+        if not before:
+            before = "Not Set"
+        await profile.update(timezone=timezone).apply()
+        await send_changed_embed(ctx, changed="Timezone", before=before, after=profile.timezone)
 
 
 def setup(bot):

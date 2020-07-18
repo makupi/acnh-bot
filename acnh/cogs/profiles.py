@@ -55,7 +55,9 @@ class Profiles(commands.Cog):
         **Example**: `{prefix}profile`
 
         To setup your own profile use the following commands
-        **Usage**: `{prefix}profile <island|name|fruit|hemisphere|fc> <value>`
+        **Usage**: `{prefix}profile <key> <value>`
+        **Possible keys**:
+            `island, name, fruit, hemisphere, fc, flower, airport, timezone`
         **Examples**:
             `{prefix}profile name Daisy`
             `{prefix}profile fruit cherry`
@@ -97,7 +99,9 @@ class Profiles(commands.Cog):
                 prefix = get_guild_prefix(self.bot, ctx.guild.id)
                 embed.description = (
                     f"**You haven't configured your profile yet!**\n"
-                    f"To configure your profile use: \n`{prefix}profile <island|name|fruit|hemisphere|fc> <value>`\n"
+                    f"To configure your profile use: \n`{prefix}profile <key> <value>`\n"
+                    f"**Possible keys**: \n"
+                    f"`island, name, fruit, hemisphere, fc, flower, airport, timezone`\n"
                     f"**Examples**:\n"
                     f"`{prefix}profile name Daisy`\n"
                     f"`{prefix}profile fruit cherry`\n"

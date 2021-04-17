@@ -74,11 +74,11 @@
         },
         "async-nookipedia": {
             "hashes": [
-                "sha256:25bfc18f056e68b8a29cfcf6f607c38a7ea47b522564cb8dcc8bde2e88dba1d1",
-                "sha256:7bf1635796afcbc99b09ef515a5eddddcac4a176c2cc35ba2443465e366d1020"
+                "sha256:1819cb4481c674ad27e17e1e6989170af54efb22a94f81dbcb8971f03d68d1eb",
+                "sha256:c25c54bd72c84e86e6a90fbb37bc4257f20aefb79658f42229763e7a5bf5308a"
             ],
             "index": "pypi",
-            "version": "==1.0.0"
+            "version": "==1.0.1"
         },
         "async-timeout": {
             "hashes": [
@@ -580,7 +580,7 @@
                 "sha256:2f4da4594db7e1e110a944bb1b551fdf4e6c136ad42e4234131391e21eb5b0df",
                 "sha256:e7b021f7241115872f92f43c6508082facffbd1c048e3c6e2bb9c2a157e28937"
             ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4' and python_version < '4.0'",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4' and python_version < '4'",
             "version": "==1.26.4"
         },
         "yarl": {

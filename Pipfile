@@ -9,7 +9,7 @@ verify_ssl = true
 discord-py = "*"
 gino = "*"
 alembic = "*"
-psycopg2 = "*"
 aiohttp = "*"
 fuzzywuzzy = {extras = ["speedup"],version = "*"}
 async-nookipedia = "*"
+psycopg2-binary = "*"

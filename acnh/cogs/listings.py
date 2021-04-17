@@ -37,6 +37,9 @@ class Listings(commands.Cog):
     async def on_ready(self):
         print(f"{type(self).__name__} Cog ready.")
 
+    async def cog_before_invoke(self, ctx):
+        await self.bot.log_deprecated_command_usage(self.bot, command_name=str(ctx.command))
+
     async def check_user_banned(self, ctx):
         if ctx.author.id in self.bot.turnip_banned_users:
             embed = await create_embed(

@@ -1,3 +1,4 @@
+import discord
 from discord.ext import commands
 
 from acnh.utils import config, create_embed, wait_for_choice
@@ -35,18 +36,42 @@ async def search(ctx, name, lookup, category):
         return await wait_for_choice(ctx, embed, matches)
 
 
+async def format_critter(name: str, critter) -> discord.Embed:
+    embed = await create_embed(title=name, url=critter.url)
+    if critter.catchphrases and len(critter.catchphrases) > 0:
+        embed.description = f"*{critter.catchphrases[0]}*"
+    embed.set_thumbnail(url=critter.image_url)
+    embed.set_footer(text="Powered by https://nookipedia.com/")
+    # if critter.time_year:
+    #     value = split_string_categories(critter.time_year)
+    #     embed.add_field(name="Season", value=value, inline=False)
+    # if critter.time_day:
+    #     value = split_string_categories(critter.time_day)
+    #     embed.add_field(name="Daytime", value=value, inline=False)
+    if critter.rarity:
+        value = split_string_categories(critter.rarity)
+        embed.add_field(name="Rarity", value=value, inline=False)
+    if critter.location:
+        value = split_string_categories(critter.location)
+        embed.add_field(name="Location", value=value, inline=False)
+    if critter.sell_nook:
+        embed.add_field(name="Sell Price Nook", value=str(critter.sell_nook), inline=False)
+    return embed
+
+
 class Nookipedia(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.api = NookipediaAPI(api_key=config.nookipedia_key, cached_api=True)
+        self.api = NookipediaAPI(api_key=config.nookipedia_key)
         self.villagers = list()
-        self.critters = list()
+        self.fish = list()
+        self.bugs = list()
         self.personality_data = dict()
 
     @commands.Cog.listener()
     async def on_ready(self):
         self.villagers = await self.query_villager_list()
-        self.critters = await self.query_critter_list()
+        await self.query_critter_list()
         self.personality_data = await self.query_personalities()
         print(f"{type(self).__name__} Cog ready.")
 
@@ -66,69 +91,71 @@ class Nookipedia(commands.Cog):
         """*Look up a villager by name*
 
         **Usage**: `{prefix}villager <name>`
-        **Example**: `{prefix}villager marshal` """
+        **Example**: `{prefix}villager marshal`"""
         await ctx.trigger_typing()
         name, msg = await self.find_villager(ctx, name)
         if name is None:
             return
         v = await self.api.get_villager(name)
-        embed = await create_embed(title=name, url=v.link)
-        if v.quote:
-            embed.description = f"*{v.quote}*"
-        embed.set_thumbnail(url=v.image)
-        embed.set_footer(text="Powered by https://nookipedia.com/")
-        if v.gender:
-            embed.add_field(name="Gender", value=v.gender)
-        if v.species:
-            embed.add_field(name="Species", value=v.species)
-        if v.personality:
-            embed.add_field(name="Personality", value=v.personality)
-        if v.phrase:
-            embed.add_field(name="Phrase", value=v.phrase)
-        if v.birthday:
-            embed.add_field(name="Birthday", value=f"{v.birthday} ({v.sign})")
+        if v is None:
+            embed = await create_embed(description=f"Villager {name} not found.")
+        else:
+            embed = await create_embed(title=name, url=v.url)
+            if v.quote:
+                embed.description = f"*{v.quote}*"
+            embed.set_thumbnail(url=v.image_url)
+            embed.set_footer(text="Powered by https://nookipedia.com/")
+            if v.gender:
+                embed.add_field(name="Gender", value=v.gender)
+            if v.species:
+                embed.add_field(name="Species", value=v.species)
+            if v.personality:
+                embed.add_field(name="Personality", value=v.personality)
+            if v.phrase:
+                embed.add_field(name="Phrase", value=v.phrase)
+            if v.birthday:
+                embed.add_field(name="Birthday", value=f"{v.birthday} ({v.sign})")
         if msg is None:
             await ctx.send(embed=embed)
         else:
             await msg.edit(embed=embed)
 
-    @commands.command(aliases=["bug", "fish"])
-    async def critter(self, ctx, *, name: str):
-        """*Look up a critter by name*
+    @commands.command()
+    async def bug(self, ctx, *, name: str):
+        """*Look up a bug by name*
 
-        **Usage**: `{prefix}critter <name>`
-        **Example**: `{prefix}critter sea bass` """
+        **Usage**: `{prefix}bug <name>`
+        **Example**: `{prefix}bug grasshopper`"""
         await ctx.trigger_typing()
-        name, msg = await self.find_critter(ctx, name)
+        name, msg = await self.find_bug(ctx, name)
         if name is None:
             return
-        c = await self.api.get_critter(name)
-        embed = await create_embed(title=name, url=c.link)
-        if c.caught:
-            embed.description = f"*{c.caught}*"
-        embed.set_thumbnail(url=c.image)
-        embed.set_footer(
-            text="Powered by https://nookipedia.com/ (critter is currently in beta)"
-        )
-        if c.time_year:
-            value = split_string_categories(c.time_year)
-            embed.add_field(name="Season", value=value, inline=False)
-        if c.time_day:
-            value = split_string_categories(c.time_day)
-            embed.add_field(name="Daytime", value=value, inline=False)
-        if c.rarity:
-            value = split_string_categories(c.rarity)
-            embed.add_field(name="Rarity", value=value, inline=False)
-        if c.price:
-            value = split_string_categories(c.price)
-            embed.add_field(name="Sell Price", value=value, inline=False)
-        if c.shadow:
-            value = split_string_categories(c.shadow)
-            embed.add_field(name="Shadow", value=value, inline=False)
-        if c.location:
-            value = split_string_categories(c.location)
-            embed.add_field(name="Location", value=value, inline=False)
+        c = await self.api.get_bug(name)
+        embed = await format_critter(name, c)
+        if c.sell_flick:
+            embed.add_field(name="Sell Price Flick", value=str(c.sell_flick))
+        if msg is None:
+            await ctx.send(embed=embed)
+        else:
+            await msg.edit(embed=embed)
 
+    @commands.command()
+    async def fish(self, ctx, *, name: str):
+        """*Look up a fish by name*
+
+        **Usage**: `{prefix}fish <name>`
+        **Example**: `{prefix}fish sea bass`"""
+        await ctx.trigger_typing()
+        name, msg = await self.find_fish(ctx, name)
+        if name is None:
+            return
+        c = await self.api.get_fish(name)
+        embed = await format_critter(name, c)
+        if c.sell_cj:
+            embed.add_field(name="Sell Price CJ", value=str(c.sell_cj))
+        if c.shadow_size:
+            value = split_string_categories(c.shadow_size)
+            embed.add_field(name="Shadow", value=value, inline=False)
         if msg is None:
             await ctx.send(embed=embed)
         else:
@@ -138,7 +165,7 @@ class Nookipedia(commands.Cog):
     async def personalities(self, ctx):
         """*Get a list of personalities*
 
-        **Example**: `{prefix}personalities` """
+        **Example**: `{prefix}personalities`"""
         embed = await create_embed(title="Personalities")
         desc = ""
         for k in self.personality_data.keys():
@@ -151,7 +178,7 @@ class Nookipedia(commands.Cog):
         """*Get all villagers with a certain personality*
 
         **Usage**: `{prefix}personality <name>`
-        **Example**: `{prefix}personality jock` """
+        **Example**: `{prefix}personality jock`"""
         name = name.capitalize()
         embed = await create_embed()
         if name not in self.personality_data:
@@ -181,23 +208,18 @@ class Nookipedia(commands.Cog):
             return tmp, None
         return await search(ctx, name, self.villagers, "villager")
 
-    async def find_critter(self, ctx, name):
-        tmp = f"{name.capitalize()} (fish)"
-        if tmp in self.critters:
-            return tmp, None
-        return await search(ctx, name, self.critters, "critter")
+    async def find_bug(self, ctx, name):
+        return await search(ctx, name, self.bugs, "bugs")
+
+    async def find_fish(self, ctx, name):
+        return await search(ctx, name, self.fish, "fish")
 
     async def query_villager_list(self) -> list:
-        villagers = await self.api.get_category("Villagers")
-        for villager in villagers:
-            if "Category" in villager or "islander" in villager.lower():
-                villagers.remove(villager)
-        return villagers
+        return await self.api.get_villager_names()
 
-    async def query_critter_list(self) -> list:
-        bugs = await self.api.get_category("New_Horizons_fish")
-        fish = await self.api.get_category("New_Horizons_bugs")
-        return bugs + fish
+    async def query_critter_list(self):
+        self.bugs = await self.api.get_bug_names()
+        self.fish = await self.api.get_fish_names()
 
     async def query_personalities(self) -> dict:
         pers = await self.api.get_category("Personalities")

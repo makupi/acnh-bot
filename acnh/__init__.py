@@ -76,6 +76,14 @@ async def sync_guild_data():
         await asyncio.sleep(300)
 
 
+async def log_deprecated_command_usage(bot, command_name: str):
+    channel = bot.get_channel(508515073547960341)
+    await channel.send(f"Deprecated command `{command_name}` has been used.")
+
+
+bot.log_deprecated_command_usage = log_deprecated_command_usage
+
+
 @bot.before_invoke
 async def before_invoke(ctx):
     ctx.bot.total_commands += 1

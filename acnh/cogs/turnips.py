@@ -65,9 +65,14 @@ class Turnips(commands.Cog):
             BELL_EMOJI = bells
         print(f"{type(self).__name__} Cog ready.")
 
+    async def cog_before_invoke(self, ctx):
+        await self.bot.log_deprecated_command_usage(self.bot, command_name=str(ctx.command))
+
     def add_listings(self, embed, listings):
         if len(listings) == 0:
-            embed.description = "*Currently no active listings for this category. Please check back later!*"
+            embed.description = (
+                "*Currently no active listings for this category. Please check back later!*"
+            )
         for listing in listings:
             user = self.bot.get_user(listing.user_id)
             user_str = f"**User**: {user.name}#{user.discriminator} <{user.id}>"
@@ -162,9 +167,7 @@ class Turnips(commands.Cog):
         listing = await Turnip.get(ctx.author.id)
         if listing is not None:
             await listing.delete()
-        embed = await create_embed(
-            description="Listing deleted. Thank you for participating. <3"
-        )
+        embed = await create_embed(description="Listing deleted. Thank you for participating. <3")
         set_footer(embed, ctx)
         await ctx.send(embed=embed)
 
